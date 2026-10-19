@@ -106,6 +106,11 @@
   .team-cabeza { width: auto; max-width: 78px; }
   .team-item > .mon-item { margin-left: auto; }
   .team + .team { border-top: 1px solid #3a4378; padding-top: 14px; }
+  .visor { overflow: auto; max-height: 70vh; border-radius: 10px; background: #0b0e1c; }
+  .lienzo { position: relative; }
+  .lienzo > img { width: 100%; display: block; }
+  .marcador-mapa { position: absolute; transform: translate(-50%, -50%); width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid #ffd54f; background: #2d3570; overflow: hidden; cursor: pointer; }
+  .marcador-mapa img { width: 100%; height: 100%; object-fit: cover; display: block; }
   details.elemento summary { cursor: pointer; font-weight: bold; font-size: 17px; color: #b9c4ff; list-style: none; }
   details.elemento summary::-webkit-details-marker { display: none; }
   details.elemento summary::after { content: "▾"; float: right; color: #aab; }
@@ -141,6 +146,7 @@
   <button data-sec="inicio" class="activo">Inicio</button>
   <button data-sec="personajes">Personajes</button>
   <button data-sec="equipos">Equipos</button>
+  <button data-sec="mapas">Mapas</button>
 </aside>
 
 <main>
@@ -199,6 +205,22 @@
   <section id="equipos" class="seccion">
     <h2>Equipos recomendados</h2>
     <div id="listaEquipos"></div>
+  </section>
+
+  <section id="mapas" class="seccion">
+    <h2>Mapas</h2>
+    <div class="filtros">
+      <select id="selectMapa"></select>
+      <div class="etiqueta">Mostrar (puedes marcar varios)</div>
+      <div class="chips" id="chipsTipos"></div>
+      <div style="margin-top: 12px;">
+        <button class="btn" id="zoomMenos">−</button>
+        <button class="btn" id="zoomMas">+</button>
+        <span class="aviso" id="zoomTexto">100%</span>
+      </div>
+    </div>
+    <div class="visor" id="visor"><div class="lienzo" id="lienzo"></div></div>
+    <div id="detalleMarcador"></div>
   </section>
 
   <section id="detalle" class="seccion">
@@ -559,6 +581,88 @@
       </div>`;
   }
 
+  // ---------- MAPAS ----------
+  let mapaActual = 0;
+  let zoomMapa = 1;
+  const tiposActivos = new Set(Object.keys(TIPOS_MARCADOR));
+
+  function iniciarMapas() {
+    if (MAPAS.length === 0) {
+      document.getElementById("selectMapa").style.display = "none";
+      document.getElementById("chipsTipos").style.display = "none";
+      document.getElementById("zoomMenos").style.display = "none";
+      document.getElementById("zoomMas").style.display = "none";
+      document.getElementById("zoomTexto").style.display = "none";
+      document.getElementById("lienzo").innerHTML = "<p class='aviso'>Aún no hay mapas cargados.</p>";
+      return;
+    }
+    document.getElementById("selectMapa").innerHTML =
+      MAPAS.map((m, i) => `<option value="${i}">${esc(m.nombre)}</option>`).join("");
+    document.getElementById("selectMapa").onchange = e => {
+      mapaActual = Number(e.target.value);
+      document.getElementById("detalleMarcador").innerHTML = "";
+      pintarMapa();
+    };
+    crearChipsTipos();
+    document.getElementById("zoomMas").onclick = () => cambiarZoom(0.5);
+    document.getElementById("zoomMenos").onclick = () => cambiarZoom(-0.5);
+    pintarMapa();
+  }
+
+  function crearChipsTipos() {
+    const cont = document.getElementById("chipsTipos");
+    cont.innerHTML = "";
+    Object.keys(TIPOS_MARCADOR).forEach(tipo => {
+      const b = document.createElement("button");
+      b.className = "chip" + (tiposActivos.has(tipo) ? " activo" : "");
+      b.textContent = TIPOS_MARCADOR[tipo].nombre;
+      b.onclick = () => {
+        if (tiposActivos.has(tipo)) tiposActivos.delete(tipo); else tiposActivos.add(tipo);
+        b.classList.toggle("activo");
+        pintarMapa();
+      };
+      cont.appendChild(b);
+    });
+  }
+
+  function cambiarZoom(delta) {
+    zoomMapa = Math.min(4, Math.max(1, zoomMapa + delta));
+    document.getElementById("zoomTexto").textContent = Math.round(zoomMapa * 100) + "%";
+    pintarMapa();
+  }
+
+  function pintarMapa() {
+    const mapa = MAPAS[mapaActual];
+    if (!mapa) return;
+    const lienzo = document.getElementById("lienzo");
+    lienzo.style.width = (zoomMapa * 100) + "%";
+    const marcadores = (mapa.marcadores || []).map((m, i) => ({ ...m, i }))
+      .filter(m => tiposActivos.has(m.tipo));
+    lienzo.innerHTML = `
+      <img src="${mapa.imagen}" alt="${esc(mapa.nombre)}">
+      ${marcadores.map(m => {
+        const t = TIPOS_MARCADOR[m.tipo];
+        const icono = m.tipo === "monster" ? iconoMonster(m.nombre) : CARPETA_ICONOS_MAPA + t.icono;
+        return `
+          <button class="marcador-mapa" title="${esc(m.nombre)}"
+            style="left:${m.x}%; top:${m.y}%; border-color:${t.color}"
+            onclick="abrirMarcador(${m.i})">
+            <img src="${icono}" alt="" onerror="this.style.display='none'">
+          </button>`;
+      }).join("")}`;
+  }
+
+  function abrirMarcador(i) {
+    const m = MAPAS[mapaActual].marcadores[i];
+    const t = TIPOS_MARCADOR[m.tipo];
+    document.getElementById("detalleMarcador").innerHTML = `
+      <div class="caja">
+        <h3>${esc(m.nombre)}</h3>
+        <p class="aviso">${esc(t.nombre)}</p>
+        ${m.descripcion ? `<p>${esc(m.descripcion)}</p>` : ""}
+      </div>`;
+  }
+
   // Equipos recomendados por elemento (desplegables)
   function monstruoCaja(nombre, clase) {
     const etiqueta = clase === "mon-link" ? `<span class="mon-etq">LINK</span>` : "";
@@ -614,6 +718,7 @@
   cargarPerfil();
   pintarRoles();
   pintarEquipos();
+  iniciarMapas();
   iniciarFiltros();
   pintarPersonajes();
 
@@ -621,7 +726,7 @@
   const vista = JSON.parse(sessionStorage.getItem("vistaBelana") || "{}");
   if (vista.sec === "detalle" && PERSONAJES.some(p => p.id === vista.personaje)) {
     abrirFicha(vista.personaje, false, vista.origen);
-  } else if (["inicio", "personajes", "equipos"].includes(vista.sec)) {
+  } else if (["inicio", "personajes", "equipos", "mapas"].includes(vista.sec)) {
     mostrarSeccion(vista.sec);
   }
 

@@ -150,3 +150,29 @@ const EQUIPOS_RECOMENDADOS = [
     ['jiwon', 'nagi', 'chloe']
   ] }
 ];
+
+// ============================================================
+// MAPAS
+// Imágenes de mapas en assets/images/Map/
+// Posiciones de los marcadores en porcentaje: x = izquierda, y = arriba (0 a 100)
+// Tipos: 'monster' (icono del monsterling), 'coleccionable' y 'oculto'
+// Iconos de coleccionables y objetos ocultos en assets/images/Map_Icon/
+// ============================================================
+const CARPETA_MAPAS = "assets/images/Map/";
+const CARPETA_ICONOS_MAPA = "assets/images/Map_Icon/";
+
+const TIPOS_MARCADOR = {
+  monster: { nombre: 'Monsters', color: '#e53935' },
+  coleccionable: { nombre: 'Coleccionables', color: '#ffd54f', icono: 'coleccionable.png' },
+  oculto: { nombre: 'Objetos ocultos', color: '#7dd87d', icono: 'oculto.png' }
+};
+
+// Ejemplo de un mapa (se activa cuando tengas la imagen):
+// { id: 'mapa1', nombre: 'Nombre del mapa', imagen: CARPETA_MAPAS + 'mapa1.png',
+//   marcadores: [
+//     { tipo: 'monster', nombre: 'Champi', x: 30, y: 40, descripcion: '' },
+//     { tipo: 'coleccionable', nombre: 'Nombre del coleccionable', x: 55, y: 20, descripcion: 'Dónde está' }
+//   ] }
+const MAPAS = [
+  { id: 'mapa1', nombre: 'Mapa 1', imagen: CARPETA_MAPAS + 'mapa1.png', marcadores: [] }
+];
