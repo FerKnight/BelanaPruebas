@@ -174,5 +174,7 @@ const TIPOS_MARCADOR = {
 //     { tipo: 'coleccionable', nombre: 'Nombre del coleccionable', x: 55, y: 20, descripcion: 'Dónde está' }
 //   ] }
 const MAPAS = [
-  { id: 'mapa1', nombre: 'Mapa 1', imagen: CARPETA_MAPAS + 'mapa1.png', marcadores: [] }
+  { id: 'mapa1', nombre: 'Mapa 1', imagen: CARPETA_MAPAS + 'mapa1.png', marcadores: [] },
+  { id: 'mapa2', nombre: 'Mapa 2', imagen: CARPETA_MAPAS + 'mapa2.png', marcadores: [] },
+  { id: 'mapa3', nombre: 'Mapa 3', imagen: CARPETA_MAPAS + 'mapa3.png', marcadores: [] }
 ];
