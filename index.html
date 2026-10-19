@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belana Assistant</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1b2040">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #101320; color: #eee; }
+  header { background: #1b2040; padding: 12px; position: sticky; top: 0; display: flex; align-items: center; gap: 12px; z-index: 5; }
+  nav button, .btn { background: #2d3570; color: #fff; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; margin: 2px; font-size: 15px; }
+  nav button.activo { background: #6c7ee8; }
+  .marca-app { flex: 1; text-align: center; font-weight: bold; font-size: 18px; color: #ffd54f; }
+  main { padding: 16px; max-width: 800px; margin: auto; }
+  .seccion { display: none; }
+  .seccion.activa { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+  .tarjeta { background: #1b2040; border-radius: 10px; padding: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; }
+  .tarjeta .icono { width: 60px; height: 60px; margin: 0; flex-shrink: 0; }
+  .tarjeta-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .tarjeta-info strong { font-size: 14px; line-height: 1.2; }
+  .tarjeta-info span { font-size: 12px; color: #aab; }
+  .tarjeta-artefacto { width: 84px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tarjeta-artefacto img { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: #2d3570; }
+  .tarjeta-artefacto span { font-size: 11px; color: #aab; line-height: 1.2; text-align: center; }
+    .tarjeta:hover { outline: 2px solid #6c7ee8; }
+  .marcador { flex-shrink: 0; }
+  .marcador input { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: #7dd87d; }
+  .icono { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 6px; background: #2d3570; }
+  .icono-grande { width: 110px; height: 110px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 12px; background: #2d3570; }
+  .avatar-boton { width: 96px; height: 96px; border-radius: 50%; background: #2d3570; border: 3px solid #ffd54f; cursor: pointer; padding: 0; overflow: hidden; box-sizing: border-box; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: #fff; font-size: 36px; }
+  .avatar-boton img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .avatar-ayuda { text-align: center; font-size: 13px; color: #aab; margin-bottom: 12px; }
+  .selector { display: none; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0 16px; background: #14182b; border-radius: 10px; padding: 12px; }
+  .selector.abierto { display: flex; }
+  .avatar { width: 64px; height: 64px; border-radius: 50%; background: #2d3570; border: 3px solid transparent; cursor: pointer; padding: 0; overflow: hidden; box-sizing: border-box; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .avatar.sel { border-color: #ffd54f; }
+  input, select { padding: 10px; border-radius: 8px; border: 0; width: 100%; box-sizing: border-box; margin: 6px 0 12px; font-size: 15px; background: #1b2040; color: #eee; }
+  .caja { background: #1b2040; border-radius: 10px; padding: 14px; margin: 12px 0; }
+  h2 { margin-top: 0; }
+  h3 { margin: 0 0 8px; color: #b9c4ff; }
+  ul { padding-left: 20px; margin: 0; }
+  .aviso { font-size: 13px; color: #aab; }
+  .titulo { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+  .titulo h2 { margin: 0; }
+  .contador { font-size: 16px; color: #7dd87d; font-weight: bold; }
+  .filtros { background: #1b2040; border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+  .etiqueta { font-size: 13px; color: #aab; margin: 8px 0 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: #2d3570; color: #fff; border: 2px solid transparent; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 14px; }
+  .chip.activo { background: #6c7ee8; border-color: #ffd54f; }
+  .fila-codigo { display: flex; gap: 8px; align-items: center; }
+  .fila-codigo input { flex: 1; width: auto; }
+  .ficha-cabecera { display: flex; align-items: center; gap: 16px; }
+  .ficha-cabecera .icono-grande { margin: 0; flex-shrink: 0; }
+  .ficha-cabecera h2 { margin-bottom: 6px; font-size: 20px; }
+  .ficha-datos { flex: 1; min-width: 0; }
+  .ficha-artefacto { width: 96px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .ficha-artefacto img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; background: #2d3570; }
+  .ficha-artefacto span { font-size: 13px; color: #aab; line-height: 1.2; }
+  .equipo-nombre { font-weight: bold; color: #ffd54f; margin: 0 0 10px; }
+  .huecos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .hueco { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .hueco-marco { width: 60px; height: 60px; border-radius: 8px; background: #2d3570; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .hueco-marco img { width: 100%; height: 100%; object-fit: contain; }
+  .hueco span { font-size: 11px; color: #aab; }
+  .efectos { margin-top: 12px; }
+  .efecto-titulo { margin: 8px 0 4px; font-weight: bold; color: #b9c4ff; }
+  .efectos ul { margin: 0 0 6px; }
+  .efectos li { font-size: 14px; line-height: 1.4; }
+  .monsters { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .monsters-izq { display: flex; gap: 8px; }
+  .monster { width: 80px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+  .monster-marco { width: 64px; height: 64px; box-sizing: border-box; border-radius: 10px; border: 3px solid transparent; background: #2d3570; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .monster-marco img { width: 100%; height: 100%; object-fit: contain; }
+  .monster span { font-size: 11px; color: #aab; line-height: 1.2; }
+  .team { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+  .team-cabeza { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .team-cabeza span { font-size: 15px; color: #eee; }
+  .mon-caja img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; }
+  .mon-caja.mon-link { border-color: #e53935; }
+  .mon-caja.mon-legendario { border-color: #ffd54f; }
+  .team-item { display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 6px; cursor: pointer; }
+  .team-cabeza { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 70px; flex-shrink: 0; }
+  .team-cabeza img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: #2d3570; }
+  .team-cabeza span { font-size: 14px; color: #eee; line-height: 1.2; }
+  .monsters-medio { display: flex; gap: 6px; }
+  .mon-item { width: 60px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .mon-caja { width: 52px; height: 52px; box-sizing: border-box; border-radius: 8px; border: 3px solid transparent; background: #2d3570; position: relative; overflow: hidden; }
+  .mon-caja img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; }
+  .mon-caja.mon-link img { top: 10px; height: calc(100% - 10px); }
+  .mon-etq { position: absolute; top: 1px; left: 0; right: 0; text-align: center; font-size: 8px; font-weight: bold; color: #ffd54f; letter-spacing: 1px; z-index: 1; }
+  .mon-caja.mon-link { border-color: #e53935; }
+  .mon-caja.mon-legendario { border-color: #ffd54f; }
+  .mon-nombre { font-size: 9px; color: #aab; text-align: center; line-height: 1.15; }
+  .leg-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+  .leg-cabecera .mon-caja { width: 64px; height: 64px; }
+  .leg-rasgos { flex: 1; text-align: center; font-size: 13px; color: #eee; }
+  .rasgos-titulo { display: block; font-weight: bold; color: #ffd54f; text-decoration: underline; margin-bottom: 6px; }
+  .leg-rasgos p { margin: 3px 0; color: #aab; }
+  .rasgo-caja { display: inline-block; margin-top: 6px; border: 1px solid #6c7ee8; border-radius: 8px; padding: 6px 8px; color: #eee; }
+  .team-item { justify-content: flex-start; gap: 6px; overflow-x: auto; }
+  .team-rasgos { display: flex; flex-direction: column; gap: 3px; width: 120px; flex-shrink: 0; font-size: 11px; color: #eee; line-height: 1.25; }
+  .team-cabeza { width: auto; max-width: 78px; }
+  .team-item > .mon-item { margin-left: auto; }
+  .team + .team { border-top: 1px solid #3a4378; padding-top: 14px; }
+  details.elemento summary { cursor: pointer; font-weight: bold; font-size: 17px; color: #b9c4ff; list-style: none; }
+  details.elemento summary::-webkit-details-marker { display: none; }
+  details.elemento summary::after { content: "▾"; float: right; color: #aab; }
+  details.elemento[open] summary::after { content: "▴"; }
+  details.elemento[open] summary { margin-bottom: 12px; }
+  .monster .monster-etiqueta { font-size: 11px; font-weight: bold; color: #ffd54f; min-height: 13px; letter-spacing: 1px; }
+  .monster-link .monster-marco { border-color: #e53935; }
+  .monster-legendario .monster-marco { border-color: #ffd54f; }
+  .ficha-cabecera p { margin: 2px 0; }
+  .boton-menu { background: #2d3570; color: #fff; border: 0; border-radius: 8px; font-size: 22px; padding: 4px 12px; cursor: pointer; }
+  .menu { position: fixed; top: 0; left: 0; height: 100%; width: 240px; box-sizing: border-box; background: #1b2040; padding: 16px; transform: translateX(-100%); transition: transform 0.25s ease; z-index: 20; }
+  .menu.abierto { transform: translateX(0); }
+  .menu h3 { margin: 0 0 12px; color: #ffd54f; }
+  .menu button { display: block; width: 100%; text-align: left; background: #2d3570; color: #fff; border: 0; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-bottom: 6px; }
+  .menu button.activo { background: #6c7ee8; }
+  .fondo-menu { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 15; }
+  .fondo-menu.abierto { display: block; }
+  .roles { margin-top: 12px; }
+  .rol-tarjeta { background: #1b2040; border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+  .rol-tarjeta h3 { margin-bottom: 6px; }
+  .rol-tarjeta p { margin: 0; font-size: 14px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="boton-menu" id="abrirMenu" aria-label="Abrir menú">☰</button>
+  <div class="marca-app">Belana Assistant</div>
+</header>
+<div class="fondo-menu" id="fondoMenu"></div>
+<aside class="menu" id="menu">
+  <h3>Menú</h3>
+  <button data-sec="inicio" class="activo">Inicio</button>
+  <button data-sec="personajes">Personajes</button>
+  <button data-sec="equipos">Equipos</button>
+</aside>
+
+<main>
+
+  <section id="inicio" class="seccion activa">
+    <div class="caja">
+      <h2>Mi perfil</h2>
+      <button class="avatar-boton" id="avatarBoton" title="Cambiar avatar"></button>
+      <p class="avatar-ayuda" id="avatarNombre"></p>
+      <div class="selector" id="selector"></div>
+      <label>Nombre en el juego</label>
+      <input id="nombre" maxlength="20" placeholder="Tu nombre">
+      <label>Código de amistad</label>
+      <div class="fila-codigo">
+        <input id="codigo" maxlength="20" placeholder="Tu código">
+        <button class="btn" id="copiarCodigo">Copiar</button>
+      </div>
+      <button class="btn" id="guardar">Guardar perfil</button>
+      <p id="estado" class="aviso"></p>
+    </div>
+    <div id="roles" class="roles"></div>
+  </section>
+
+  <section id="personajes" class="seccion">
+    <div class="titulo">
+      <h2>Personajes</h2>
+      <span class="contador" id="contadorTengo"></span>
+    </div>
+    <p class="aviso">Marca el recuadro de cada personaje que ya tienes.</p>
+
+    <div class="filtros">
+      <input id="buscar" type="search" placeholder="Buscar personaje por nombre...">
+
+      <div class="etiqueta">Grado</div>
+      <select id="filtroTier">
+        <option value="">Todos</option>
+        <option value="4★">4★</option>
+        <option value="5★">5★</option>
+      </select>
+
+      <div class="etiqueta">Elemento (puedes marcar varios)</div>
+      <div class="chips" id="chipsElemento"></div>
+
+      <div class="etiqueta">Rol (puedes marcar varios)</div>
+      <div class="chips" id="chipsRol"></div>
+
+      <div style="margin-top: 12px;">
+        <button class="btn" id="limpiar">Limpiar filtros</button>
+        <span class="aviso" id="contador"></span>
+      </div>
+    </div>
+
+    <div class="grid" id="lista"></div>
+  </section>
+
+  <section id="equipos" class="seccion">
+    <h2>Equipos recomendados</h2>
+    <div id="listaEquipos"></div>
+  </section>
+
+  <section id="detalle" class="seccion">
+    <button class="btn" id="volver">← Volver a personajes</button>
+    <div id="ficha"></div>
+  </section>
+
+</main>
+
+<script src="data.js"></script>
+<script>
+
+  // ============================================================
+  // LÓGICA: no hace falta tocar nada de aquí hacia abajo
+  // ============================================================
+  let perfil = JSON.parse(localStorage.getItem("perfilMongil") || "{}");
+  let obtenidos = JSON.parse(localStorage.getItem("obtenidosMongil") || "{}");
+
+  // Estado de los filtros
+  const filtros = { texto: "", tier: "", elementos: new Set(), roles: new Set() };
+
+  function esc(t) {
+    return String(t).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  // Quita tildes y pasa a minúsculas para que la búsqueda no distinga mayúsculas ni acentos
+  function normalizar(t) {
+    return String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+
+  function lista(arr) {
+    if (!arr || arr.length === 0) return "<p class='aviso'>Sin datos aún</p>";
+    return "<ul>" + arr.map(x => typeof x === "string"
+      ? `<li>${esc(x)}</li>`
+      : `<li><strong>${esc(x.nombre)}</strong>${x.descripcion ? ": " + esc(x.descripcion) : ""}</li>`
+    ).join("") + "</ul>";
+  }
+
+  function texto(t) {
+    return t ? `<p>${esc(t)}</p>` : "<p class='aviso'>Sin datos aún</p>";
+  }
+
+  // Cambia de pantalla y recuerda dónde está el usuario (para no volver al inicio al recargar)
+  function mostrarSeccion(id, personajeId = null, origen = null) {
+    document.querySelectorAll(".seccion").forEach(s => s.classList.remove("activa"));
+    document.getElementById(id).classList.add("activa");
+    document.querySelectorAll(".menu button").forEach(b =>
+      b.classList.toggle("activo", b.dataset.sec === id));
+    sessionStorage.setItem("vistaBelana", JSON.stringify({ sec: id, personaje: personajeId, origen: origen }));
+    window.scrollTo(0, 0);
+  }
+
+  // Perfil: el avatar es el icono de un personaje (se guarda su id).
+  // Tocar la imagen abre u oculta el selector.
+  function pintarAvatarActual() {
+    const boton = document.getElementById("avatarBoton");
+    const nombre = document.getElementById("avatarNombre");
+    const p = PERSONAJES.find(x => x.id === perfil.avatar);
+    if (!p) {
+      boton.innerHTML = "+";
+      nombre.textContent = "Toca para elegir avatar";
+      return;
+    }
+    boton.innerHTML = `<img src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">`;
+    nombre.textContent = p.name;
+  }
+
+  function pintarSelector() {
+    const cont = document.getElementById("selector");
+    cont.innerHTML = "";
+    PERSONAJES.forEach(p => {
+      const b = document.createElement("button");
+      b.className = "avatar" + (perfil.avatar === p.id ? " sel" : "");
+      b.title = p.name;
+      b.innerHTML = `<img src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">`;
+      b.onclick = () => {
+        perfil.avatar = p.id;
+        localStorage.setItem("perfilMongil", JSON.stringify(perfil));
+        pintarAvatarActual();
+        pintarSelector();
+        // Cierra el selector al elegir
+        document.getElementById("selector").classList.remove("abierto");
+      };
+      cont.appendChild(b);
+    });
+  }
+
+  document.getElementById("avatarBoton").onclick = () => {
+    document.getElementById("selector").classList.toggle("abierto");
+  };
+
+  function cargarPerfil() {
+    document.getElementById("nombre").value = perfil.nombre || "";
+    document.getElementById("codigo").value = perfil.codigo || "";
+    pintarAvatarActual();
+    pintarSelector();
+  }
+
+  document.getElementById("copiarCodigo").onclick = async () => {
+    const campo = document.getElementById("codigo");
+    const boton = document.getElementById("copiarCodigo");
+    const codigo = campo.value.trim();
+    if (!codigo) {
+      document.getElementById("estado").textContent = "Escribe tu código primero.";
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(codigo);
+    } catch (e) {
+      // Respaldo para navegadores sin acceso al portapapeles
+      campo.select();
+      document.execCommand("copy");
+    }
+    boton.textContent = "¡Copiado!";
+    setTimeout(() => { boton.textContent = "Copiar"; }, 1500);
+  };
+
+  document.getElementById("guardar").onclick = () => {
+    perfil.nombre = document.getElementById("nombre").value.trim();
+    perfil.codigo = document.getElementById("codigo").value.trim();
+    localStorage.setItem("perfilMongil", JSON.stringify(perfil));
+    document.getElementById("estado").textContent = "Perfil guardado.";
+  };
+
+  // Contador de personajes obtenidos (ej. 1/28)
+  function actualizarContador() {
+    const total = PERSONAJES.length;
+    const tenidos = PERSONAJES.filter(p => obtenidos[p.id]).length;
+    document.getElementById("contadorTengo").textContent = `${tenidos}/${total}`;
+  }
+
+  // Chips de elemento y rol (generados a partir de los datos)
+  function crearChips(contenedorId, valores, conjunto) {
+    const cont = document.getElementById(contenedorId);
+    cont.innerHTML = "";
+    valores.forEach(v => {
+      const b = document.createElement("button");
+      b.className = "chip" + (conjunto.has(v) ? " activo" : "");
+      b.textContent = v;
+      b.onclick = () => {
+        if (conjunto.has(v)) conjunto.delete(v); else conjunto.add(v);
+        b.classList.toggle("activo");
+        pintarPersonajes();
+      };
+      cont.appendChild(b);
+    });
+  }
+
+  function iniciarFiltros() {
+    const elementos = [...new Set(PERSONAJES.map(p => p.element))].sort();
+    const roles = [...new Set(PERSONAJES.map(p => p.role))].sort();
+    crearChips("chipsElemento", elementos, filtros.elementos);
+    crearChips("chipsRol", roles, filtros.roles);
+
+    document.getElementById("buscar").oninput = e => {
+      filtros.texto = e.target.value;
+      pintarPersonajes();
+    };
+    document.getElementById("filtroTier").onchange = e => {
+      filtros.tier = e.target.value;
+      pintarPersonajes();
+    };
+    document.getElementById("limpiar").onclick = () => {
+      filtros.texto = "";
+      filtros.tier = "";
+      filtros.elementos.clear();
+      filtros.roles.clear();
+      document.getElementById("buscar").value = "";
+      document.getElementById("filtroTier").value = "";
+      iniciarFiltros();
+      pintarPersonajes();
+    };
+  }
+
+  function cumpleFiltros(p) {
+    if (filtros.texto && !normalizar(p.name).includes(normalizar(filtros.texto))) return false;
+    if (filtros.tier && p.tier !== filtros.tier) return false;
+    if (filtros.elementos.size > 0 && !filtros.elementos.has(p.element)) return false;
+    if (filtros.roles.size > 0 && !filtros.roles.has(p.role)) return false;
+    return true;
+  }
+
+  // Personajes
+  function pintarPersonajes() {
+    const cont = document.getElementById("lista");
+    cont.innerHTML = "";
+    const visibles = PERSONAJES.filter(cumpleFiltros);
+    document.getElementById("contador").textContent =
+      `Mostrando ${visibles.length} de ${PERSONAJES.length}`;
+
+    visibles.forEach(p => {
+      const d = document.createElement("div");
+      d.className = "tarjeta";
+      d.innerHTML = `
+        <div class="marcador"></div>
+        <img class="icono" src="${iconoDe(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">
+        <div class="tarjeta-info">
+          <strong>${esc(p.name)} - ${esc(p.tier)}</strong>
+          <span>${esc(p.element)}</span>
+          <span>${esc(p.role)}</span>
+          <span>${esc(p.rango)}</span>
+        </div>
+        <div class="tarjeta-artefacto">
+          <img src="${artefactoIconoDe(p)}" alt="${esc(p.artefacto)}" loading="lazy" onerror="this.style.display='none'">
+          <span>${esc(p.artefacto)}</span>
+        </div>`;
+
+      // Casilla "lo tengo" dentro de la tarjeta
+      const casilla = document.createElement("input");
+      casilla.type = "checkbox";
+      casilla.checked = !!obtenidos[p.id];
+      casilla.title = "Lo tengo";
+      // Evita que el clic en la casilla abra la ficha del personaje
+      casilla.onclick = e => e.stopPropagation();
+      casilla.onchange = e => {
+        obtenidos[p.id] = e.target.checked;
+        localStorage.setItem("obtenidosMongil", JSON.stringify(obtenidos));
+        actualizarContador();
+      };
+      d.querySelector(".marcador").appendChild(casilla);
+
+      d.onclick = () => abrirFicha(p.id);
+      cont.appendChild(d);
+    });
+
+    if (visibles.length === 0) {
+      cont.innerHTML = "<p class='aviso'>Ningún personaje coincide con los filtros.</p>";
+    }
+    actualizarContador();
+  }
+
+  // Tarjeta de equipo: nombre de los conjuntos, 4 huecos y los efectos activos
+  const NOMBRE_PIEZA = { 1: "Casco", 2: "Pechera", 3: "Guantes", 4: "Calzado" };
+
+  function tarjetaEquipo(numero, grupos) {
+    // Si el personaje no tiene este equipo, no se muestra la tarjeta
+    if (!grupos || grupos.length === 0) return "";
+    const nombres = grupos.map(g => CONJUNTOS[g.conjunto].nombre).join(" - ");
+    const huecos = [1, 2, 3, 4].map(pieza => {
+      const g = grupos.find(x => x.piezas.includes(pieza));
+      const img = g
+        ? `<img src="${iconoConjunto(g.conjunto, pieza)}" alt="${esc(NOMBRE_PIEZA[pieza])}" onerror="this.style.display='none'">`
+        : "";
+      return `<div class="hueco"><div class="hueco-marco">${img}</div><span>${NOMBRE_PIEZA[pieza]}</span></div>`;
+    }).join("");
+    const efectos = grupos.map(g => {
+      const c = CONJUNTOS[g.conjunto];
+      const lineas = [];
+      if (g.piezas.length >= 2 && c.dos) lineas.push(`<li><strong>2 piezas:</strong> ${esc(c.dos)}</li>`);
+      if (g.piezas.length >= 4 && c.cuatro) lineas.push(`<li><strong>4 piezas:</strong> ${esc(c.cuatro)}</li>`);
+      return lineas.length ? `<p class="efecto-titulo">${esc(c.nombre)}</p><ul>${lineas.join("")}</ul>` : "";
+    }).join("");
+    return `
+      <div class="caja">
+        <p class="equipo-nombre">${esc(nombres)}</p>
+        <div class="huecos">${huecos}</div>
+        <div class="efectos">${efectos || "<p class='aviso'>Sin efectos activos</p>"}</div>
+      </div>`;
+  }
+
+  // Monsterlings: link (borde rojo), 2 y 3 (sin borde) a la izquierda; legendario (borde dorado) a la derecha
+  function monsterBox(nombre, clase) {
+    return `
+      <div class="monster ${clase}">
+        <span class="monster-etiqueta">${clase.includes("monster-link") ? "LINK" : "&nbsp;"}</span>
+        <div class="monster-marco"><img src="${iconoMonster(nombre)}" alt="${esc(nombre)}" onerror="this.style.display='none'"></div>
+        <span>${esc(nombre)}</span>
+      </div>`;
+  }
+
+  function tarjetaMonsterlings(m) {
+    if (!m) return "";
+    return `
+      <div class="caja">
+        <div class="monsters">
+          <div class="monsters-izq">
+            ${monsterBox(m.link, "monster-link")}
+            ${monsterBox(m.dos, "")}
+            ${monsterBox(m.tres, "")}
+          </div>
+          ${monsterBox(m.legendario, "monster-legendario")}
+        </div>
+      </div>`;
+  }
+
+  // Pantalla desde la que se abrió la ficha actual (listado o equipos)
+  let fichaOrigen = null;
+
+  function abrirFicha(id, desdeHistorial = false, origenForzado = null) {
+    const p = PERSONAJES.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById("ficha").innerHTML = `
+      <div class="caja ficha-cabecera">
+        <img class="icono-grande" src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
+        <div class="ficha-datos">
+          <h2>${esc(p.name)} - ${esc(p.tier)}</h2>
+          <p>${esc(p.element)}</p>
+          <p>${esc(p.role)}${p.rol !== p.role ? " - " + esc(p.rol) : ""}</p>
+          <p>${esc(p.rango)}</p>
+        </div>
+        <div class="ficha-artefacto">
+          <img src="${artefactoIconoDe(p)}" alt="${esc(p.artefacto)}" onerror="this.style.display='none'">
+          <span>${esc(p.artefacto)}</span>
+        </div>
+      </div>
+      ${tarjetaEquipo(1, p.equipos[0])}
+      ${tarjetaEquipo(2, p.equipos[1])}
+      ${tarjetaMonsterlings(p.monsters)}
+    `;
+    const origen = origenForzado || document.querySelector(".seccion.activa").id;
+    fichaOrigen = origen;
+    if (!desdeHistorial) history.pushState({ vista: "detalle", personaje: id, origen: origen }, "");
+    mostrarSeccion("detalle", id, origen);
+  }
+
+  // Menú desplegable desde la izquierda
+  function abrirMenu() {
+    document.getElementById("menu").classList.add("abierto");
+    document.getElementById("fondoMenu").classList.add("abierto");
+  }
+  function cerrarMenu() {
+    document.getElementById("menu").classList.remove("abierto");
+    document.getElementById("fondoMenu").classList.remove("abierto");
+  }
+  document.getElementById("abrirMenu").onclick = abrirMenu;
+  document.getElementById("fondoMenu").onclick = cerrarMenu;
+
+  // Navegación
+  document.querySelectorAll(".menu button").forEach(b =>
+    b.onclick = () => {
+      if (history.state && history.state.vista === "detalle") history.replaceState(null, "");
+      mostrarSeccion(b.dataset.sec);
+      cerrarMenu();
+    });
+  document.getElementById("volver").onclick = () => {
+    if (history.state && history.state.vista === "detalle") history.back();
+    else mostrarSeccion(fichaOrigen || "personajes");
+  };
+
+  // Cabecera de Equipos: legendarios Reginula y Sorin con los rasgos en el centro
+  function cabeceraLegendarios() {
+    const caja = nombre => `
+      <div class="mon-caja mon-legendario">
+        <img src="${iconoMonster(nombre)}" alt="${esc(nombre)}" onerror="this.style.display='none'">
+      </div>`;
+    return `
+      <div class="leg-cabecera">
+        ${caja("Reginula")}
+        <div class="leg-rasgos">
+          <span class="rasgos-titulo">Rasgos</span>
+          <p>Daño a Jefes - Daño por Debilidad Elemental</p>
+          <p>Ataque</p>
+          <div class="rasgo-caja">Daño Crítico - Probabilidad de Crítico</div>
+        </div>
+        ${caja("Sorin")}
+      </div>`;
+  }
+
+  // Equipos recomendados por elemento (desplegables)
+  function monstruoCaja(nombre, clase) {
+    const etiqueta = clase === "mon-link" ? `<span class="mon-etq">LINK</span>` : "";
+    return `
+      <div class="mon-item">
+        <div class="mon-caja ${clase}">
+          ${etiqueta}
+          <img src="${iconoMonster(nombre)}" alt="${esc(nombre)}" onerror="this.style.display='none'">
+        </div>
+        <span class="mon-nombre">${esc(nombre)}</span>
+      </div>`;
+  }
+
+  function pintarEquipos() {
+    const cont = document.getElementById("listaEquipos");
+    cont.innerHTML = cabeceraLegendarios() + EQUIPOS_RECOMENDADOS.map(grupo => `
+      <details class="caja elemento">
+        <summary>${esc(grupo.elemento)}</summary>
+        ${grupo.equipos.map(equipo => `
+          <div class="team">
+            ${equipo.map(id => {
+              const p = PERSONAJES.find(x => x.id === id);
+              const m = p.monsters;
+              return `
+                <div class="team-item" onclick="abrirFicha('${p.id}')">
+                  <div class="team-cabeza">
+                    <img src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
+                    <span>${esc(p.name.replace(/ Verano$/, " V."))}</span>
+                  </div>
+                  <div class="monsters-medio">
+                    ${monstruoCaja(m.link, "mon-link")}
+                    ${monstruoCaja(m.dos, "")}
+                    ${monstruoCaja(m.tres, "")}
+                  </div>
+                  <div class="team-rasgos">
+                    ${(p.rasgos || []).map(r => `<span>${esc(r)}</span>`).join("")}
+                  </div>
+                  ${monstruoCaja(m.legendario, "mon-legendario")}
+                </div>`;
+            }).join("")}
+          </div>`).join("")}
+      </details>`).join("");
+  }
+
+  function pintarRoles() {
+    document.getElementById("roles").innerHTML = ROLES.map(r => `
+      <div class="rol-tarjeta">
+        <h3>${esc(r.nombre)}</h3>
+        <p>${esc(r.descripcion)}</p>
+      </div>`).join("");
+  }
+
+  cargarPerfil();
+  pintarRoles();
+  pintarEquipos();
+  iniciarFiltros();
+  pintarPersonajes();
+
+  // Vuelve a la pantalla donde estaba el usuario antes de recargar
+  const vista = JSON.parse(sessionStorage.getItem("vistaBelana") || "{}");
+  if (vista.sec === "detalle" && PERSONAJES.some(p => p.id === vista.personaje)) {
+    abrirFicha(vista.personaje, false, vista.origen);
+  } else if (["inicio", "personajes", "equipos"].includes(vista.sec)) {
+    mostrarSeccion(vista.sec);
+  }
+
+  // Botón atrás del navegador o del móvil: desde una ficha vuelve al listado
+  window.addEventListener("popstate", e => {
+    if (e.state && e.state.vista === "detalle") abrirFicha(e.state.personaje, true, e.state.origen);
+    else mostrarSeccion(fichaOrigen || "personajes");
+  });
+
+  // Registro del service worker (permite usar la web sin conexión)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(err =>
+        console.warn("No se pudo activar el modo sin conexión:", err));
+    });
+  }
+</script>
+
+</body>
+</html>
