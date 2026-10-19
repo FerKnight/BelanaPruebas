@@ -155,16 +155,20 @@ const EQUIPOS_RECOMENDADOS = [
 // MAPAS
 // Imágenes de mapas en assets/images/Map/
 // Posiciones de los marcadores en porcentaje: x = izquierda, y = arriba (0 a 100)
-// Tipos: 'monster' (icono del monsterling), 'coleccionable' y 'oculto'
-// Iconos de coleccionables y objetos ocultos en assets/images/Map_Icon/
+// Tipos: traslado, pasaje, monster (icono del monsterling), coleccionable, cofre, puzzle, conocimiento
+// Iconos de los demás tipos en assets/images/Map_Icon/ (traslado.png, pasaje.png, cofre.png...)
 // ============================================================
 const CARPETA_MAPAS = "assets/images/Map/";
 const CARPETA_ICONOS_MAPA = "assets/images/Map_Icon/";
 
 const TIPOS_MARCADOR = {
-  monster: { nombre: 'Monsters', color: '#e53935' },
+  traslado: { nombre: 'Puntos de traslado', color: '#4fc3f7', icono: 'traslado.png' },
+  pasaje: { nombre: 'Pasajes', color: '#9575cd', icono: 'pasaje.png' },
+  monster: { nombre: 'Monsterlings', color: '#e53935' },
   coleccionable: { nombre: 'Coleccionables', color: '#ffd54f', icono: 'coleccionable.png' },
-  oculto: { nombre: 'Objetos ocultos', color: '#7dd87d', icono: 'oculto.png' }
+  cofre: { nombre: 'Cofres', color: '#ff8a65', icono: 'cofre.png' },
+  puzzle: { nombre: 'Puzzles', color: '#7dd87d', icono: 'puzzle.png' },
+  conocimiento: { nombre: 'Conocimientos', color: '#f06292', icono: 'conocimiento.png' }
 };
 
 // Ejemplo de un mapa (se activa cuando tengas la imagen):

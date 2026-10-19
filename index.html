@@ -106,11 +106,22 @@
   .team-cabeza { width: auto; max-width: 78px; }
   .team-item > .mon-item { margin-left: auto; }
   .team + .team { border-top: 1px solid #3a4378; padding-top: 14px; }
-  .visor { overflow: auto; max-height: 70vh; border-radius: 10px; background: #0b0e1c; }
-  .lienzo { position: relative; }
-  .lienzo > img { width: 100%; display: block; }
-  .marcador-mapa { position: absolute; transform: translate(-50%, -50%); width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid #ffd54f; background: #2d3570; overflow: hidden; cursor: pointer; }
+  #mapas .visor { position: fixed; top: 64px; left: 0; right: 0; bottom: 0; overflow: hidden; background: #0b0e1c; touch-action: none; }
+  .lienzo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transform-origin: center center; }
+  .mapa-caja { position: relative; line-height: 0; }
+  .mapa-caja > img { display: block; max-width: 100vw; max-height: calc(100vh - 64px); user-select: none; -webkit-user-drag: none; }
+  .marcador-mapa { position: absolute; transform: translate(-50%, -50%); width: calc(28px / var(--zoom, 1)); height: calc(28px / var(--zoom, 1)); padding: 0; border-radius: 50%; border: calc(2px / var(--zoom, 1)) solid #ffd54f; background: #2d3570; overflow: hidden; cursor: pointer; z-index: 2; }
   .marcador-mapa img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .boton-filtro { position: absolute; top: 12px; left: 12px; z-index: 10; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #1b2040; color: #fff; font-size: 20px; cursor: pointer; }
+  .panel-filtros { position: absolute; top: 64px; left: 12px; z-index: 10; width: min(280px, calc(100% - 24px)); max-height: calc(100% - 90px); overflow-y: auto; background: #1b2040; border-radius: 10px; padding: 12px; box-sizing: border-box; }
+  .panel-filtros[hidden] { display: none; }
+  .zoom-controles { position: absolute; right: 12px; bottom: 12px; z-index: 10; display: flex; flex-direction: column; gap: 8px; }
+  .zoom-controles button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: #1b2040; color: #fff; font-size: 22px; cursor: pointer; }
+  .detalle-flotante { position: absolute; left: 12px; bottom: 12px; z-index: 10; max-width: 60%; background: #1b2040; border-radius: 10px; padding: 12px 34px 12px 12px; box-sizing: border-box; }
+  .detalle-flotante[hidden] { display: none; }
+  .detalle-flotante h3 { margin: 0 0 4px; }
+  .detalle-flotante p { margin: 2px 0; }
+  .cerrar-detalle { position: absolute; top: 6px; right: 8px; background: none; border: 0; color: #aab; font-size: 20px; cursor: pointer; }
   details.elemento summary { cursor: pointer; font-weight: bold; font-size: 17px; color: #b9c4ff; list-style: none; }
   details.elemento summary::-webkit-details-marker { display: none; }
   details.elemento summary::after { content: "▾"; float: right; color: #aab; }
@@ -208,19 +219,23 @@
   </section>
 
   <section id="mapas" class="seccion">
-    <h2>Mapas</h2>
-    <div class="filtros">
-      <select id="selectMapa"></select>
-      <div class="etiqueta">Mostrar (puedes marcar varios)</div>
-      <div class="chips" id="chipsTipos"></div>
-      <div style="margin-top: 12px;">
-        <button class="btn" id="zoomMenos">−</button>
-        <button class="btn" id="zoomMas">+</button>
-        <span class="aviso" id="zoomTexto">100%</span>
+    <div class="visor" id="visor">
+      <div class="lienzo" id="lienzo">
+        <div class="mapa-caja" id="mapaCaja"></div>
       </div>
+      <button class="boton-filtro" id="botonFiltro" aria-label="Filtros">⚙</button>
+      <div class="panel-filtros" id="panelFiltros" hidden>
+        <div class="etiqueta">Mapa</div>
+        <select id="selectMapa"></select>
+        <div class="etiqueta">Mostrar (puedes marcar varios)</div>
+        <div class="chips" id="chipsTipos"></div>
+      </div>
+      <div class="zoom-controles" id="zoomControles">
+        <button id="zoomMas" aria-label="Acercar">+</button>
+        <button id="zoomMenos" aria-label="Alejar">−</button>
+      </div>
+      <div class="detalle-flotante" id="detalleMarcador" hidden></div>
     </div>
-    <div class="visor" id="visor"><div class="lienzo" id="lienzo"></div></div>
-    <div id="detalleMarcador"></div>
   </section>
 
   <section id="detalle" class="seccion">
@@ -582,31 +597,58 @@
   }
 
   // ---------- MAPAS ----------
+  const visor = document.getElementById("visor");
+  const lienzo = document.getElementById("lienzo");
+  const mapaCaja = document.getElementById("mapaCaja");
   let mapaActual = 0;
-  let zoomMapa = 1;
+  let zoom = 1, panX = 0, panY = 0;
   const tiposActivos = new Set(Object.keys(TIPOS_MARCADOR));
+  const punteros = new Map();
+  let distAnterior = 0;
 
-  function iniciarMapas() {
-    if (MAPAS.length === 0) {
-      document.getElementById("selectMapa").style.display = "none";
-      document.getElementById("chipsTipos").style.display = "none";
-      document.getElementById("zoomMenos").style.display = "none";
-      document.getElementById("zoomMas").style.display = "none";
-      document.getElementById("zoomTexto").style.display = "none";
-      document.getElementById("lienzo").innerHTML = "<p class='aviso'>Aún no hay mapas cargados.</p>";
-      return;
-    }
-    document.getElementById("selectMapa").innerHTML =
-      MAPAS.map((m, i) => `<option value="${i}">${esc(m.nombre)}</option>`).join("");
-    document.getElementById("selectMapa").onchange = e => {
-      mapaActual = Number(e.target.value);
-      document.getElementById("detalleMarcador").innerHTML = "";
-      pintarMapa();
-    };
-    crearChipsTipos();
-    document.getElementById("zoomMas").onclick = () => cambiarZoom(0.5);
-    document.getElementById("zoomMenos").onclick = () => cambiarZoom(-0.5);
-    pintarMapa();
+  function aplicarTransform() {
+    lienzo.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    lienzo.style.setProperty("--zoom", zoom);
+  }
+
+  // Acerca o aleja manteniendo fijo el punto bajo el cursor (o el centro de la pantalla)
+  function zoomEn(factor, sx, sy) {
+    const r = visor.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const nuevo = Math.min(5, Math.max(1, zoom * factor));
+    const px = (sx - cx - panX) / zoom;
+    const py = (sy - cy - panY) / zoom;
+    zoom = nuevo;
+    panX = sx - cx - px * zoom;
+    panY = sy - cy - py * zoom;
+    if (zoom === 1) { panX = 0; panY = 0; }
+    aplicarTransform();
+  }
+
+  function zoomBoton(factor) {
+    const r = visor.getBoundingClientRect();
+    zoomEn(factor, r.left + r.width / 2, r.top + r.height / 2);
+  }
+
+  function resetZoom() {
+    zoom = 1; panX = 0; panY = 0;
+    aplicarTransform();
+  }
+
+  function distancia() {
+    const [a, b] = [...punteros.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y) || 1;
+  }
+
+  function puntoMedio() {
+    const [a, b] = [...punteros.values()];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  }
+
+  function cerrarDetalle() {
+    const det = document.getElementById("detalleMarcador");
+    det.hidden = true;
+    det.innerHTML = "";
   }
 
   function crearChipsTipos() {
@@ -625,20 +667,12 @@
     });
   }
 
-  function cambiarZoom(delta) {
-    zoomMapa = Math.min(4, Math.max(1, zoomMapa + delta));
-    document.getElementById("zoomTexto").textContent = Math.round(zoomMapa * 100) + "%";
-    pintarMapa();
-  }
-
   function pintarMapa() {
     const mapa = MAPAS[mapaActual];
     if (!mapa) return;
-    const lienzo = document.getElementById("lienzo");
-    lienzo.style.width = (zoomMapa * 100) + "%";
     const marcadores = (mapa.marcadores || []).map((m, i) => ({ ...m, i }))
       .filter(m => tiposActivos.has(m.tipo));
-    lienzo.innerHTML = `
+    mapaCaja.innerHTML = `
       <img src="${mapa.imagen}" alt="${esc(mapa.nombre)}">
       ${marcadores.map(m => {
         const t = TIPOS_MARCADOR[m.tipo];
@@ -655,12 +689,71 @@
   function abrirMarcador(i) {
     const m = MAPAS[mapaActual].marcadores[i];
     const t = TIPOS_MARCADOR[m.tipo];
-    document.getElementById("detalleMarcador").innerHTML = `
-      <div class="caja">
-        <h3>${esc(m.nombre)}</h3>
-        <p class="aviso">${esc(t.nombre)}</p>
-        ${m.descripcion ? `<p>${esc(m.descripcion)}</p>` : ""}
-      </div>`;
+    const det = document.getElementById("detalleMarcador");
+    det.innerHTML = `
+      <button class="cerrar-detalle" onclick="cerrarDetalle()" aria-label="Cerrar">×</button>
+      <h3>${esc(m.nombre)}</h3>
+      <p class="aviso">${esc(t.nombre)}</p>
+      ${m.descripcion ? `<p>${esc(m.descripcion)}</p>` : ""}`;
+    det.hidden = false;
+  }
+
+  function iniciarMapas() {
+    if (MAPAS.length === 0) {
+      mapaCaja.innerHTML = "<p class='aviso' style='padding:20px'>Aún no hay mapas cargados.</p>";
+      document.getElementById("botonFiltro").style.display = "none";
+      document.getElementById("zoomControles").style.display = "none";
+      return;
+    }
+    document.getElementById("selectMapa").innerHTML =
+      MAPAS.map((m, i) => `<option value="${i}">${esc(m.nombre)}</option>`).join("");
+    document.getElementById("selectMapa").onchange = e => {
+      mapaActual = Number(e.target.value);
+      cerrarDetalle();
+      resetZoom();
+      pintarMapa();
+    };
+    crearChipsTipos();
+
+    document.getElementById("botonFiltro").onclick = () => {
+      const panel = document.getElementById("panelFiltros");
+      panel.hidden = !panel.hidden;
+    };
+    document.getElementById("zoomMas").onclick = () => zoomBoton(1.25);
+    document.getElementById("zoomMenos").onclick = () => zoomBoton(1 / 1.25);
+
+    // Rueda del ratón: acercar y alejar
+    visor.addEventListener("wheel", e => {
+      e.preventDefault();
+      zoomEn(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY);
+    }, { passive: false });
+
+    // Arrastrar para mover el mapa (con zoom) y pellizcar para acercar en el móvil
+    visor.addEventListener("pointerdown", e => {
+      if (e.target.closest(".marcador-mapa, .boton-filtro, .panel-filtros, .zoom-controles, .detalle-flotante")) return;
+      punteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (punteros.size === 2) distAnterior = distancia();
+    });
+    visor.addEventListener("pointermove", e => {
+      if (!punteros.has(e.pointerId)) return;
+      const previo = punteros.get(e.pointerId);
+      punteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (punteros.size === 1 && zoom > 1) {
+        panX += e.clientX - previo.x;
+        panY += e.clientY - previo.y;
+        aplicarTransform();
+      } else if (punteros.size === 2) {
+        const d = distancia();
+        const c = puntoMedio();
+        zoomEn(d / distAnterior, c.x, c.y);
+        distAnterior = d;
+      }
+    });
+    const soltar = e => punteros.delete(e.pointerId);
+    visor.addEventListener("pointerup", soltar);
+    visor.addEventListener("pointercancel", soltar);
+
+    pintarMapa();
   }
 
   // Equipos recomendados por elemento (desplegables)
