@@ -191,6 +191,9 @@ const MAPAS = [
 // >>> LISTAS (generado desde la plantilla de Excel) >>>
 const PIEZA_NUM = { casco: 1, pechera: 2, guantes: 3, calzado: 4 };
 
+// Regiones para el filtro de monsterlings (hoja "regiones" del Excel)
+const REGIONES = [];
+
 // Lista completa de monsterlings. link: 'Sí' o 'No'. Región, efecto y cómo conseguirlo se completan en el Excel.
 const MONSTERLINGS = [
   {"numero": 1, "nombre": "Reginula", "tipo": "legendario", "region": "", "link": "No", "efecto": "", "conseguir": ""},
@@ -439,7 +442,7 @@ const PIEZAS_EQUIPO = [
   {"conjunto": "destructor_despiadado", "pieza": "pechera", "efecto": "", "conseguir": ""},
   {"conjunto": "destructor_despiadado", "pieza": "guantes", "efecto": "", "conseguir": ""},
   {"conjunto": "destructor_despiadado", "pieza": "calzado", "efecto": "", "conseguir": ""},
-  {"conjunto": "devorador_del_abismo", "pieza": "pechera", "efecto": "", "conseguir": ""},
+  {"conjunto": "devorador_del_abismo", "pieza": "guantes", "efecto": "", "conseguir": ""},
   {"conjunto": "devorador_del_abismo", "pieza": "calzado", "efecto": "", "conseguir": ""},
   {"conjunto": "el_sin_nombre", "pieza": "casco", "efecto": "", "conseguir": ""},
   {"conjunto": "el_sin_nombre", "pieza": "pechera", "efecto": "", "conseguir": ""},
