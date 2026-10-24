@@ -125,6 +125,8 @@
   .item-icono { width: 56px; height: 56px; box-sizing: border-box; border-radius: 10px; background: #2d3570; overflow: hidden; flex-shrink: 0; border: 2px solid transparent; }
   .item-icono img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .item-icono.dorado { border-color: #ffd54f; }
+  .tier-5 { border: 3px solid #ffd54f; border-radius: 50%; }
+  .tier-4 { border: 3px solid #9575cd; border-radius: 50%; }
   .item-info { flex: 1; min-width: 0; }
   .item-info strong { font-size: 15px; }
   .item-info p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; }
@@ -493,9 +495,9 @@
       const d = document.createElement("div");
       d.className = "tarjeta";
       d.innerHTML = `
-        <img class="icono" src="${iconoDe(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">
+        <img class="icono tier-${p.tier.replace('★','')}" src="${iconoDe(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">
         <div class="tarjeta-info">
-          <strong>${esc(p.name)} ${esc(p.tier)}</strong>
+          <strong>${esc(p.name)}</strong>
           <span>${esc(p.element)}</span>
           <span>${esc(p.role)}</span>
           <span>${esc(p.rango)}</span>
@@ -573,10 +575,10 @@
     if (!p) return;
     document.getElementById("ficha").innerHTML = `
       <div class="caja ficha-cabecera">
-        <img class="icono-grande" src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
+        <img class="icono-grande tier-${p.tier.replace('★','')}" src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
         <div class="ficha-datos">
-          <h2>${esc(p.name)} ${esc(p.tier)}</h2>
-          <p>${esc(p.element)}</p>
+          <h2>${esc(p.name)}</h2>
+          <p>${esc(p.tier)} · ${esc(p.element)}</p>
           <p>${esc(p.role)}${p.rol !== p.role ? " - " + esc(p.rol) : ""}</p>
           <p>${esc(p.rango)}</p>
           <label class="fila-check"><input type="checkbox" id="tengo"> Lo tengo</label>
@@ -783,11 +785,11 @@
       return `
         <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
           <div class="item-icono"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
-          <div class="item-info">
+          <div class="item-icono tier-${a.grado}"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
             <strong class="item-nombre">${esc(a.nombre)}</strong>
             <div class="etiquetas">
-              <span class="etq etq-dorada">${a.grado}★</span>
-              <span class="etq">${esc(a.rol)}</span>
+
+
             </div>
           </div>
           ${hayDetalle ? `<div class="item-detalle"><p>${esc(a.efecto)}</p></div>` : ""}
@@ -796,7 +798,7 @@
   }
 
   function iniciarArtefactos() {
-    chipsGenericos("a-grados", valoresUnicos(["4", "5", ...ARTEFACTOS.map(a => String(a.grado))]), fa.grados, pintarArtefactos, v => v + "★");
+    chipsGenericos("a-grados", ["5", "4"], fa.grados, pintarArtefactos, v => v === "5" ? "5★" : "4★");
     chipsGenericos("a-roles", valoresUnicos(ARTEFACTOS.map(a => a.rol)), fa.roles, pintarArtefactos);
     chipsGenericos("a-efectos", categoriasPresentes(ARTEFACTOS.map(a => a.efecto)), fa.efectos, pintarArtefactos);
     document.getElementById("a-lista").onclick = alternarDetalle;
