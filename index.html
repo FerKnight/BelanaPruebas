@@ -15,15 +15,13 @@
   main { padding: 16px; max-width: 800px; margin: auto; }
   .seccion { display: none; }
   .seccion.activa { display: block; }
-  .grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
-  .tarjeta { background: #1b2040; border-radius: 10px; padding: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; max-width: 100%; box-sizing: border-box; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, 232px); gap: 8px; justify-content: start; }
+  .tarjeta { background: #1b2040; border-radius: 10px; padding: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; max-width: 100%; box-sizing: border-box; height: 84px; }
   .tarjeta .icono { width: 60px; height: 60px; margin: 0; flex-shrink: 0; }
-  .tarjeta-info { flex: 0 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .tarjeta-info strong { font-size: 14px; line-height: 1.2; white-space: nowrap; }
+  .tarjeta-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .tarjeta-info strong { font-size: 14px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tarjeta-info span { font-size: 12px; color: #aab; }
     .tarjeta:hover { outline: 2px solid #6c7ee8; }
-  .marcador { flex-shrink: 0; }
-  .marcador input { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: #7dd87d; }
   .icono { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 6px; background: #2d3570; }
   .icono-grande { width: 110px; height: 110px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 12px; background: #2d3570; }
   .avatar-boton { width: 96px; height: 96px; border-radius: 50%; background: #2d3570; border: 3px solid #ffd54f; cursor: pointer; padding: 0; overflow: hidden; box-sizing: border-box; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: #fff; font-size: 36px; }
@@ -138,6 +136,17 @@
   .piezas-fila { display: flex; gap: 8px; margin: 6px 0; }
   .pieza-mini { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #aab; }
   .pieza-mini .item-icono { width: 44px; height: 44px; }
+  .lista-uniforme { grid-template-columns: repeat(auto-fill, 300px); justify-content: start; align-items: start; }
+  .lista-uniforme .item-lista { position: relative; box-sizing: border-box; height: 80px; flex-wrap: wrap; align-items: center; overflow: hidden; padding: 10px 24px 10px 10px; }
+  .lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
+  .lista-uniforme .item-nombre { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; line-height: 1.25; }
+  .lista-uniforme .etiquetas { flex-wrap: nowrap; overflow: hidden; }
+  .item-detalle { display: none; flex-basis: 100%; }
+  .item-lista.abierta .item-detalle { display: block; }
+  .item-detalle p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; }
+  .con-detalle { cursor: pointer; }
+  .con-detalle::after { content: "▾"; position: absolute; right: 8px; top: 6px; color: #aab; font-size: 12px; }
+  .con-detalle.abierta::after { content: "▴"; }
   details.elemento summary { cursor: pointer; font-weight: bold; font-size: 17px; color: #b9c4ff; list-style: none; }
   details.elemento summary::-webkit-details-marker { display: none; }
   details.elemento summary::after { content: "▾"; float: right; color: #aab; }
@@ -205,7 +214,7 @@
       <h2>Personajes</h2>
       <span class="contador" id="contadorTengo"></span>
     </div>
-    <p class="aviso">Marca el recuadro de cada personaje que ya tienes.</p>
+    <p class="aviso">Abre un personaje y marca «Lo tengo» en su perfil.</p>
 
     <div class="filtros">
       <input id="buscar" type="search" placeholder="Buscar personaje por nombre...">
@@ -243,7 +252,7 @@
       <div class="grupo"><div class="etiqueta">Efecto (puedes marcar varios)</div><div class="chips" id="m-efectos"></div></div>
       <div style="margin-top: 12px;"><button class="btn" id="m-limpiar">Limpiar filtros</button> <span class="aviso" id="m-contador"></span></div>
     </div>
-    <div class="lista-items" id="m-lista"></div>
+    <div class="lista-items lista-uniforme" id="m-lista"></div>
   </section>
 
   <section id="artefactos" class="seccion">
@@ -255,7 +264,7 @@
       <div class="grupo"><div class="etiqueta">Efecto (puedes marcar varios)</div><div class="chips" id="a-efectos"></div></div>
       <div style="margin-top: 12px;"><button class="btn" id="a-limpiar">Limpiar filtros</button> <span class="aviso" id="a-contador"></span></div>
     </div>
-    <div class="lista-items" id="a-lista"></div>
+    <div class="lista-items lista-uniforme" id="a-lista"></div>
   </section>
 
   <section id="equipamientos" class="seccion">
@@ -481,28 +490,13 @@
       const d = document.createElement("div");
       d.className = "tarjeta";
       d.innerHTML = `
-        <div class="marcador"></div>
         <img class="icono" src="${iconoDe(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">
         <div class="tarjeta-info">
-          <strong>${esc(p.name)} - ${esc(p.tier)}</strong>
+          <strong>${esc(p.name)} ${esc(p.tier)}</strong>
           <span>${esc(p.element)}</span>
           <span>${esc(p.role)}</span>
           <span>${esc(p.rango)}</span>
         </div>`;
-
-      // Casilla "lo tengo" dentro de la tarjeta
-      const casilla = document.createElement("input");
-      casilla.type = "checkbox";
-      casilla.checked = !!obtenidos[p.id];
-      casilla.title = "Lo tengo";
-      // Evita que el clic en la casilla abra la ficha del personaje
-      casilla.onclick = e => e.stopPropagation();
-      casilla.onchange = e => {
-        obtenidos[p.id] = e.target.checked;
-        localStorage.setItem("obtenidosMongil", JSON.stringify(obtenidos));
-        actualizarContador();
-      };
-      d.querySelector(".marcador").appendChild(casilla);
 
       d.onclick = () => abrirFicha(p.id);
       cont.appendChild(d);
@@ -578,10 +572,11 @@
       <div class="caja ficha-cabecera">
         <img class="icono-grande" src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
         <div class="ficha-datos">
-          <h2>${esc(p.name)} - ${esc(p.tier)}</h2>
+          <h2>${esc(p.name)} ${esc(p.tier)}</h2>
           <p>${esc(p.element)}</p>
           <p>${esc(p.role)}${p.rol !== p.role ? " - " + esc(p.rol) : ""}</p>
           <p>${esc(p.rango)}</p>
+          <label class="fila-check"><input type="checkbox" id="tengo"> Lo tengo</label>
         </div>
         <div class="ficha-artefacto">
           <img src="${artefactoIconoDe(p)}" alt="${esc(p.artefacto)}" onerror="this.style.display='none'">
@@ -592,6 +587,13 @@
       ${tarjetaEquipo(2, p.equipos[1])}
       ${tarjetaMonsterlings(p.monsters)}
     `;
+    const casillaTengo = document.getElementById("tengo");
+    casillaTengo.checked = !!obtenidos[p.id];
+    casillaTengo.onchange = e => {
+      obtenidos[p.id] = e.target.checked;
+      localStorage.setItem("obtenidosMongil", JSON.stringify(obtenidos));
+      actualizarContador();
+    };
     const origen = origenForzado || document.querySelector(".seccion.activa").id;
     fichaOrigen = origen;
     if (!desdeHistorial) history.pushState({ vista: "detalle", personaje: id, origen: origen }, "");
@@ -676,6 +678,11 @@
     return [...seleccion].every(e => cats.includes(e));
   }
 
+  function alternarDetalle(e) {
+    const tarjeta = e.target.closest(".con-detalle");
+    if (tarjeta) tarjeta.classList.toggle("abierta");
+  }
+
   const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
   const valoresUnicos = arr => [...new Set(arr.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "es"));
 
@@ -719,19 +726,22 @@
     const visibles = MONSTERLINGS.filter(cumpleMonster);
     document.getElementById("m-contador").textContent = `Mostrando ${visibles.length} de ${MONSTERLINGS.length}`;
     document.getElementById("m-lista").innerHTML = visibles.length ? visibles.map(m => {
+      const hayDetalle = !!(m.efecto || m.conseguir);
       return `
-        <div class="item-lista">
+        <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
           <div class="item-icono${m.tipo === "legendario" ? " dorado" : ""}"><img src="${iconoMonster(m.nombre)}" alt="${esc(m.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-info">
-            <strong>#${m.numero} ${esc(m.nombre)}</strong>
+            <strong class="item-nombre">#${m.numero} ${esc(m.nombre)}</strong>
             <div class="etiquetas">
               ${m.tipo === "legendario" ? '<span class="etq etq-dorada">Legendario</span>' : ""}
               ${m.link === "Sí" ? '<span class="etq etq-link">LINK</span>' : ""}
               ${m.region ? `<span class="etq">${esc(m.region)}</span>` : ""}
             </div>
+          </div>
+          ${hayDetalle ? `<div class="item-detalle">
             ${m.efecto ? `<p>${esc(m.efecto)}</p>` : ""}
             ${m.conseguir ? `<p class="aviso">Cómo conseguirlo: ${esc(m.conseguir)}</p>` : ""}
-          </div>
+          </div>` : ""}
         </div>`;
     }).join("") : "<p class='aviso'>Ningún monsterling coincide con los filtros.</p>";
   }
@@ -741,6 +751,7 @@
     chipsGenericos("m-regiones", regionesDisponibles(), fm.regiones, pintarMonsters);
     chipsGenericos("m-links", ["Sí", "No"], fm.links, pintarMonsters, v => v === "Sí" ? "Con link" : "Sin link");
     chipsGenericos("m-efectos", categoriasPresentes(MONSTERLINGS.map(m => m.efecto)), fm.efectos, pintarMonsters);
+    document.getElementById("m-lista").onclick = alternarDetalle;
     document.getElementById("m-buscar").oninput = e => { fm.texto = e.target.value; pintarMonsters(); };
     document.getElementById("m-limpiar").onclick = () => {
       fm.texto = ""; fm.links.clear(); fm.tipos.clear(); fm.regiones.clear(); fm.efectos.clear();
@@ -765,17 +776,18 @@
     const visibles = ARTEFACTOS.filter(cumpleArtefacto).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
     document.getElementById("a-contador").textContent = `Mostrando ${visibles.length} de ${ARTEFACTOS.length}`;
     document.getElementById("a-lista").innerHTML = visibles.length ? visibles.map(a => {
+      const hayDetalle = !!a.efecto;
       return `
-        <div class="item-lista">
+        <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
           <div class="item-icono"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-info">
-            <strong>${esc(a.nombre)}</strong>
+            <strong class="item-nombre">${esc(a.nombre)}</strong>
             <div class="etiquetas">
               <span class="etq etq-dorada">${a.grado}★</span>
               <span class="etq">${esc(a.rol)}</span>
             </div>
-            ${a.efecto ? `<p>${esc(a.efecto)}</p>` : ""}
           </div>
+          ${hayDetalle ? `<div class="item-detalle"><p>${esc(a.efecto)}</p></div>` : ""}
         </div>`;
     }).join("") : "<p class='aviso'>Ningún artefacto coincide con los filtros.</p>";
   }
@@ -784,6 +796,7 @@
     chipsGenericos("a-grados", valoresUnicos(["4", "5", ...ARTEFACTOS.map(a => String(a.grado))]), fa.grados, pintarArtefactos, v => v + "★");
     chipsGenericos("a-roles", valoresUnicos(ARTEFACTOS.map(a => a.rol)), fa.roles, pintarArtefactos);
     chipsGenericos("a-efectos", categoriasPresentes(ARTEFACTOS.map(a => a.efecto)), fa.efectos, pintarArtefactos);
+    document.getElementById("a-lista").onclick = alternarDetalle;
     document.getElementById("a-buscar").oninput = e => { fa.texto = e.target.value; pintarArtefactos(); };
     document.getElementById("a-limpiar").onclick = () => {
       fa.texto = ""; fa.grados.clear(); fa.roles.clear(); fa.efectos.clear();
