@@ -666,14 +666,14 @@
   // Filtro inteligente de efectos: cada categoría busca palabras clave dentro del texto del efecto.
   // Solo aparecen las categorías que existen en los datos, así que se actualiza solo al cargar efectos.
   const CATEGORIAS_EFECTO = [
-    { nombre: "Daño", claves: ["\\bdano", "\\bataque"] },
-    { nombre: "Crítico", claves: ["critico"] },
     { nombre: "Daño a jefes", claves: ["jefe"] },
-    { nombre: "Defensa", claves: ["defensa", "\\bres\\b", "resistencia", "escudo", "reduccion de dano"] },
+    { nombre: "Apoyo", claves: ["\\bapoyo"] },
+    { nombre: "Neutralización", claves: ["neutraliz"] },
+    { nombre: "Contención", claves: ["contenc"] },
+    { nombre: "Refriega", claves: ["refriega"] },
     { nombre: "Vida y curación", claves: ["\\bvida\\b", "\\bcur", "regener"] },
     { nombre: "Recarga y energía", claves: ["recarga", "enfriamiento", "energia"] },
     { nombre: "Velocidad", claves: ["velocidad"] },
-    { nombre: "Debilidad elemental", claves: ["debilidad"] },
     { nombre: "Fuego", claves: ["fuego"] },
     { nombre: "Hielo", claves: ["hielo", "escarcha"] },
     { nombre: "Tierra", claves: ["tierra"] },
@@ -722,21 +722,6 @@
     cont.parentElement.style.display = valores.length ? "" : "none";
   }
 
-  // Quién usa cada monsterling y cada conjunto (calculado con los datos de los personajes)
-  const USO_MONSTER = {};
-  const USO_CONJUNTO = {};
-  PERSONAJES.forEach(p => {
-    [p.monsters.link, p.monsters.dos, p.monsters.tres, p.monsters.legendario].forEach(n => {
-      const k = nombreArchivo(n);
-      USO_MONSTER[k] = USO_MONSTER[k] || [];
-      if (!USO_MONSTER[k].includes(p)) USO_MONSTER[k].push(p);
-    });
-    p.equipos.forEach(grupos => grupos.forEach(g => {
-      USO_CONJUNTO[g.conjunto] = USO_CONJUNTO[g.conjunto] || [];
-      if (!USO_CONJUNTO[g.conjunto].includes(p)) USO_CONJUNTO[g.conjunto].push(p);
-    }));
-  });
-
   // ----- Monsterlings -----
   const fm = { texto: "", tipos: new Set(), regiones: new Set(), link: "", efectos: new Set() };
 
@@ -754,12 +739,11 @@
     const visibles = MONSTERLINGS.filter(cumpleMonster);
     document.getElementById("m-contador").textContent = `Mostrando ${visibles.length} de ${MONSTERLINGS.length}`;
     document.getElementById("m-lista").innerHTML = visibles.length ? visibles.map(m => {
-      const usos = USO_MONSTER[nombreArchivo(m.nombre)] || [];
       return `
         <div class="item-lista">
           <div class="item-icono${m.tipo === "legendario" ? " dorado" : ""}"><img src="${iconoMonster(m.nombre)}" alt="${esc(m.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-info">
-            <strong>${esc(m.nombre)}</strong>
+            <strong>#${m.numero} ${esc(m.nombre)}</strong>
             <div class="etiquetas">
               ${m.tipo === "legendario" ? '<span class="etq etq-dorada">Legendario</span>' : ""}
               ${m.link === "Sí" ? '<span class="etq etq-link">LINK</span>' : ""}
@@ -767,7 +751,6 @@
             </div>
             ${m.efecto ? `<p>${esc(m.efecto)}</p>` : ""}
             ${m.conseguir ? `<p class="aviso">Cómo conseguirlo: ${esc(m.conseguir)}</p>` : ""}
-            ${usos.length ? `<p class="aviso">Lo usan: ${enlacesPersonajes(usos)}</p>` : ""}
           </div>
         </div>`;
     }).join("") : "<p class='aviso'>Ningún monsterling coincide con los filtros.</p>";
@@ -860,7 +843,6 @@
     document.getElementById("e-lista").innerHTML = claves.length ? claves.map(k => {
       const c = CONJUNTOS[k];
       const piezas = piezasDe(k);
-      const usos = USO_CONJUNTO[k] || [];
       const detalle = piezas.filter(x => x.efecto || x.conseguir).map(x =>
         `<p class="aviso"><strong>${mayus(x.pieza)}:</strong> ${esc(x.efecto)}${x.efecto && x.conseguir ? " · " : ""}${x.conseguir ? "Dónde: " + esc(x.conseguir) : ""}</p>`).join("");
       return `
@@ -877,7 +859,6 @@
             ${c.dos ? `<p><strong>2 piezas:</strong> ${esc(c.dos)}</p>` : ""}
             ${c.cuatro ? `<p><strong>4 piezas:</strong> ${esc(c.cuatro)}</p>` : ""}
             ${detalle}
-            ${usos.length ? `<p class="aviso">Lo usan: ${enlacesPersonajes(usos)}</p>` : ""}
           </div>
         </div>`;
     }).join("") : "<p class='aviso'>Ningún conjunto coincide con los filtros.</p>";
