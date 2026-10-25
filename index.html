@@ -139,13 +139,17 @@
   .pieza-mini { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #aab; }
   .pieza-mini .item-icono { width: 44px; height: 44px; }
   .lista-uniforme { grid-template-columns: repeat(auto-fill, 236px); gap: 6px; justify-content: start; align-items: start; }
+  #m-lista.lista-uniforme { grid-template-columns: repeat(auto-fill, 212px); }
   .lista-uniforme .item-lista { position: relative; box-sizing: border-box; height: auto; min-height: 56px; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; }
+  #m-lista.lista-uniforme .item-lista { height: 58px; overflow: hidden; }
+  #m-lista.lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
   .lista-uniforme .item-icono { width: 44px; height: 44px; position: relative; }
   .item-numero { position: absolute; right: 1px; bottom: 1px; background: #101320; color: #eee; font-size: 9px; font-weight: bold; line-height: 1; border-radius: 4px; padding: 1px 3px; }
   .lista-uniforme .etiquetas { margin-top: 3px; }
   .lista-uniforme .etq { font-size: 10px; padding: 0 7px; }
   .lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
   .lista-uniforme .item-nombre { font-size: 12px; line-height: 1.25; }
+  #m-lista .item-nombre { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .lista-uniforme .etiquetas { flex-wrap: nowrap; overflow: hidden; }
   .item-detalle { display: none; flex-basis: 100%; }
   .item-lista.abierta .item-detalle { display: block; }
