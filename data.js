@@ -192,7 +192,7 @@ const MAPAS = [
 const PIEZA_NUM = { casco: 1, pechera: 2, guantes: 3, calzado: 4 };
 
 // Regiones para el filtro de monsterlings (hoja "regiones" del Excel; si está vacía se usan las de la lista)
-const REGIONES = [];
+const REGIONES = ["Elendor", "Varhine", "Serenia", "Surah", "Namryung", "Muwon", "Sector 3"];
 
 // Lista completa de monsterlings. link: 'Sí' o 'No'. efecto = efecto de rango.
 const MONSTERLINGS = [

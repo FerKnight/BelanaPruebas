@@ -11,7 +11,7 @@
   header { background: #1b2040; padding: 12px; position: sticky; top: 0; display: flex; align-items: center; gap: 12px; z-index: 5; }
   nav button, .btn { background: #2d3570; color: #fff; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; margin: 2px; font-size: 15px; }
   nav button.activo { background: #6c7ee8; }
-  .marca-app { flex: 1; text-align: center; font-weight: bold; font-size: 18px; color: #ffd54f; }
+  .marca-app { cursor: pointer; flex: 1; text-align: center; font-weight: bold; font-size: 18px; color: #ffd54f; }
   main { padding: 16px; max-width: 800px; margin: auto; }
   .seccion { display: none; }
   .seccion.activa { display: block; }
@@ -139,6 +139,10 @@
   #m-lista.lista-uniforme, #a-lista.lista-uniforme { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lista-uniforme .item-lista { position: relative; box-sizing: border-box; height: auto; min-height: 56px; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; }
   #m-lista.lista-uniforme .item-lista, #a-lista.lista-uniforme .item-lista { height: 58px; overflow: hidden; }
+  #a-lista.lista-uniforme .item-lista { height: 88px; }
+  #a-lista .etiquetas { margin: 0 0 2px; }
+  .item-sub { display: block; font-size: 10.5px; line-height: 1.2; color: #b9c4ff; margin-top: 1px; }
+  #a-lista .item-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   #m-lista.lista-uniforme .item-lista.abierta, #a-lista.lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
   .lista-uniforme .item-icono { width: 44px; height: 44px; position: relative; }
   .item-numero { position: absolute; right: 1px; bottom: 1px; background: #101320; color: #eee; font-size: 9px; font-weight: bold; line-height: 1; border-radius: 4px; padding: 1px 3px; }
@@ -163,6 +167,8 @@
     #m-lista .item-info, #a-lista .item-info { width: 100%; flex: 0 1 auto; }
     #m-lista .etiquetas, #a-lista .etiquetas { justify-content: center; }
     #m-lista .item-detalle, #a-lista .item-detalle { flex-basis: auto; width: 100%; text-align: left; }
+    #a-lista.lista-uniforme .item-lista { height: 148px; }
+    #a-lista.lista-uniforme .item-lista.abierta { min-height: 148px; }
   }
   details.elemento summary { cursor: pointer; font-weight: bold; font-size: 17px; color: #b9c4ff; list-style: none; }
   details.elemento summary::-webkit-details-marker { display: none; }
@@ -180,8 +186,9 @@
   .artefacto-ficha { display: flex; gap: 12px; align-items: flex-start; }
   .artefacto-ficha .item-icono { width: 56px; height: 56px; flex-shrink: 0; }
   .artefacto-datos { flex: 1; min-width: 0; }
-  .artefacto-datos strong { font-size: 15px; }
-  .artefacto-datos .etiquetas { margin-top: 4px; }
+  .artefacto-datos strong { display: block; font-size: 15px; }
+  .artefacto-datos .etiquetas { margin: 0 0 3px; }
+  .artefacto-datos .item-sub { display: block; margin-top: 2px; font-size: 12px; }
   .artefacto-datos p { margin: 8px 0 0; font-size: 13px; line-height: 1.4; white-space: pre-line; }
   .grupo-titulo { grid-column: 1 / -1; margin: 6px 0 0; font-size: 14px; color: #ffd54f; }
   .boton-menu { background: #2d3570; color: #fff; border: 0; border-radius: 8px; font-size: 22px; padding: 4px 12px; cursor: pointer; }
@@ -202,7 +209,7 @@
 
 <header>
   <button class="boton-menu" id="abrirMenu" aria-label="Abrir menú">☰</button>
-  <div class="marca-app">Belana Assistant</div>
+  <div class="marca-app" id="tituloApp" role="button" tabindex="0">Belana Assistant</div>
 </header>
 <div class="fondo-menu" id="fondoMenu"></div>
 <aside class="menu" id="menu">
@@ -272,11 +279,13 @@
   <section id="monsters" class="seccion">
     <h2>Monsterlings</h2>
     <div class="filtros">
-      <input id="m-buscar" type="search" placeholder="Buscar por nombre, efecto o dónde conseguirlo...">
-      <div class="grupo"><div class="etiqueta">Tipo</div><div class="chips" id="m-tipos"></div></div>
+      <input id="m-buscar" type="search" placeholder="Buscar por nombre o efecto...">
       <div class="grupo"><div class="etiqueta">Región</div><div class="chips" id="m-regiones"></div></div>
-      <div class="grupo"><div class="etiqueta">Link</div><div class="chips" id="m-links"></div></div>
-      <div class="grupo"><div class="etiqueta">Efecto (puedes marcar varios)</div><div class="chips" id="m-efectos"></div></div>
+      <div class="grupo"><div class="etiqueta">Tipo</div><div class="chips" id="m-tipos"></div></div>
+      <div class="grupo"><div class="etiqueta">Enlace</div><div class="chips" id="m-links"></div></div>
+      <div class="grupo"><div class="etiqueta">Elementos</div><div class="chips" id="m-elementos"></div></div>
+      <div class="grupo"><div class="etiqueta">Efectos (puedes marcar varios)</div><div class="chips" id="m-efectos"></div></div>
+      <div class="grupo"><div class="etiqueta">Efectos de rol (puedes marcar varios)</div><div class="chips" id="m-roles"></div></div>
       <div style="margin-top: 12px;"><button class="btn" id="m-limpiar">Limpiar filtros</button> <span class="aviso" id="m-contador"></span></div>
     </div>
     <div class="lista-items lista-uniforme" id="m-lista"></div>
@@ -287,8 +296,9 @@
     <div class="filtros">
       <input id="a-buscar" type="search" placeholder="Buscar por nombre o efecto...">
       <div class="grupo"><div class="etiqueta">Grado</div><div class="chips" id="a-grados"></div></div>
-      <div class="grupo"><div class="etiqueta">Rol (puedes marcar varios)</div><div class="chips" id="a-roles"></div></div>
-      <div class="grupo"><div class="etiqueta">Efecto (puedes marcar varios)</div><div class="chips" id="a-efectos"></div></div>
+      <div class="grupo"><div class="etiqueta">Rol</div><div class="chips" id="a-roles"></div></div>
+      <div class="grupo"><div class="etiqueta">Elementos</div><div class="chips" id="a-elementos"></div></div>
+      <div class="grupo"><div class="etiqueta">Efectos (puedes marcar varios)</div><div class="chips" id="a-efectos"></div></div>
       <div style="margin-top: 12px;"><button class="btn" id="a-limpiar">Limpiar filtros</button> <span class="aviso" id="a-contador"></span></div>
     </div>
     <div class="lista-items lista-uniforme" id="a-lista"></div>
@@ -599,8 +609,9 @@
       <div class="caja artefacto-ficha">
         <div class="item-icono${a ? " tier-" + a.grado : ""}"><img src="${iconoArtefacto(nombre)}" alt="${esc(nombre)}" onerror="this.style.display='none'"></div>
         <div class="artefacto-datos">
+          ${a ? `<div class="etiquetas"><span class="etq">${esc(a.rol)}</span></div>` : ""}
           <strong>${esc(nombre)}</strong>
-          ${a ? `<div class="etiquetas"><span class="etq">${esc(a.rol)}</span>${a.sub ? `<span class="etq">${esc(a.sub)}</span>` : ""}</div>` : ""}
+          ${a && a.sub ? `<span class="item-sub">${esc(a.sub)}</span>` : ""}
           ${a && a.efecto ? `<p>${esc(a.efecto)}</p>` : ""}
         </div>
       </div>`;
@@ -657,6 +668,8 @@
     document.getElementById("fondoMenu").classList.remove("abierto");
   }
   document.getElementById("abrirMenu").onclick = abrirMenu;
+  document.getElementById("tituloApp").onclick = abrirMenu;
+  document.getElementById("tituloApp").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrirMenu(); } };
   document.getElementById("fondoMenu").onclick = cerrarMenu;
 
   // Navegación
@@ -730,6 +743,38 @@
     if (tarjeta) tarjeta.classList.toggle("abierta");
   }
 
+  // Filtros por palabras clave del texto de efecto (Monsterlings y Artefactos)
+  const FILTRO_ELEMENTOS = [
+    { nombre: "Fuego", claves: ["fuego"] },
+    { nombre: "Hielo", claves: ["hielo", "escarcha"] },
+    { nombre: "Tierra", claves: ["tierra"] },
+    { nombre: "Rayo", claves: ["rayo"] },
+    { nombre: "Viento", claves: ["viento"] }
+  ];
+  const FILTRO_STATS = [
+    { nombre: "ATQ", claves: ["\\batq\\b"] },
+    { nombre: "Daño", claves: ["\\bdano"] },
+    { nombre: "DEF", claves: ["\\bdef\\b"] },
+    { nombre: "Índice de crítico", claves: ["indice de critico"] },
+    { nombre: "Recupera", claves: ["\\brecuper"] },
+    { nombre: "RES", claves: ["\\bres\\b"] },
+    { nombre: "Restablece", claves: ["\\brestablec"] }
+  ];
+  const ROL_APOYO = { nombre: "Apoyo", claves: ["\\bapoyo"] };
+  const ROL_NEUTRALIZACION = { nombre: "Neutralización", claves: ["neutraliz"] };
+  const ROL_CONTENCION = { nombre: "Contención", claves: ["contenc"] };
+  const ROL_REFRIEGA = { nombre: "Refriega", claves: ["refriega"] };
+  const FILTRO_ROL_MONSTER = [ROL_APOYO, ROL_NEUTRALIZACION, ROL_CONTENCION, ROL_REFRIEGA];
+  const FILTRO_ROL_ARTEFACTO = [ROL_APOYO, ROL_CONTENCION, ROL_NEUTRALIZACION, ROL_REFRIEGA];
+
+  // Sin nada marcado cumple siempre. todos=true: deben cumplirse todos los marcados; false: basta con uno
+  function cumpleGrupo(grupo, seleccion, texto, todos) {
+    if (seleccion.size === 0) return true;
+    const t = normalizar(texto || "");
+    const hay = grupo.filter(c => c.claves.some(k => new RegExp(k).test(t))).map(c => c.nombre);
+    return todos ? [...seleccion].every(e => hay.includes(e)) : [...seleccion].some(e => hay.includes(e));
+  }
+
   const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
   const valoresUnicos = arr => [...new Set(arr.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "es"));
 
@@ -758,7 +803,7 @@
   }
 
   // ----- Monsterlings -----
-  const fm = { texto: "", tipos: new Set(), regiones: new Set(), links: new Set(), efectos: new Set() };
+  const fm = { texto: "", tipos: new Set(), regiones: new Set(), links: new Set(), elementos: new Set(), efectos: new Set(), roles: new Set() };
 
   function cumpleMonster(m) {
     const t = normalizar(`${m.nombre} ${m.efecto} ${m.conseguir}`);
@@ -766,7 +811,9 @@
     if (fm.tipos.size && !fm.tipos.has(m.tipo)) return false;
     if (fm.regiones.size && !fm.regiones.has(m.region)) return false;
     if (fm.links.size && !((fm.links.has("Sí") && m.link === "Sí") || (fm.links.has("No") && m.link !== "Sí"))) return false;
-    return cumpleEfectos(fm.efectos, m.efecto);
+    return cumpleGrupo(FILTRO_ELEMENTOS, fm.elementos, m.efecto, false)
+      && cumpleGrupo(FILTRO_STATS, fm.efectos, m.efecto, true)
+      && cumpleGrupo(FILTRO_ROL_MONSTER, fm.roles, m.efecto, true);
   }
 
   function pintarMonsters() {
@@ -797,11 +844,13 @@
     chipsGenericos("m-tipos", ["normal", "legendario"], fm.tipos, pintarMonsters, v => v === "legendario" ? "Legendarios" : "Normales");
     chipsGenericos("m-regiones", regionesDisponibles(), fm.regiones, pintarMonsters);
     chipsGenericos("m-links", ["Sí", "No"], fm.links, pintarMonsters, v => v === "Sí" ? "Con link" : "Sin link");
-    chipsGenericos("m-efectos", categoriasPresentes(MONSTERLINGS.map(m => m.efecto)), fm.efectos, pintarMonsters);
+    chipsGenericos("m-elementos", FILTRO_ELEMENTOS.map(c => c.nombre), fm.elementos, pintarMonsters);
+    chipsGenericos("m-efectos", FILTRO_STATS.map(c => c.nombre), fm.efectos, pintarMonsters);
+    chipsGenericos("m-roles", FILTRO_ROL_MONSTER.map(c => c.nombre), fm.roles, pintarMonsters);
     document.getElementById("m-lista").onclick = alternarDetalle;
     document.getElementById("m-buscar").oninput = e => { fm.texto = e.target.value; pintarMonsters(); };
     document.getElementById("m-limpiar").onclick = () => {
-      fm.texto = ""; fm.links.clear(); fm.tipos.clear(); fm.regiones.clear(); fm.efectos.clear();
+      fm.texto = ""; fm.links.clear(); fm.tipos.clear(); fm.regiones.clear(); fm.elementos.clear(); fm.efectos.clear(); fm.roles.clear();
       document.getElementById("m-buscar").value = "";
       iniciarMonsters();
     };
@@ -809,31 +858,29 @@
   }
 
   // ----- Artefactos -----
-  const fa = { texto: "", grados: new Set(), roles: new Set(), efectos: new Set() };
+  const fa = { texto: "", grados: new Set(), roles: new Set(), elementos: new Set(), efectos: new Set() };
+  const ROLES_ARTEFACTO = ["Apoyo", "Asesino", "Destructor", "Luchador"];
 
   function cumpleArtefacto(a) {
-    const t = normalizar(`${a.nombre} ${a.sub} ${a.efecto}`);
-    if (fa.texto && !t.includes(normalizar(fa.texto))) return false;
+    const texto = `${a.sub} ${a.efecto}`;
+    if (fa.texto && !normalizar(`${a.nombre} ${texto}`).includes(normalizar(fa.texto))) return false;
     if (fa.grados.size && !fa.grados.has(String(a.grado))) return false;
     if (fa.roles.size && !fa.roles.has(a.rol)) return false;
-    return cumpleEfectos(fa.efectos, `${a.sub} ${a.efecto}`);
+    return cumpleGrupo(FILTRO_ELEMENTOS, fa.elementos, texto, false)
+      && cumpleGrupo(FILTRO_ROL_ARTEFACTO, fa.efectos, texto, true);
   }
 
   function tarjetaArtefactoLista(a) {
-    const hayDetalle = !!(a.sub || a.efecto);
+    const hayDetalle = !!a.efecto;
     return `
         <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
           <div class="item-icono tier-${a.grado}"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-info">
+            <div class="etiquetas"><span class="etq">${esc(a.rol)}</span></div>
             <strong class="item-nombre">${esc(a.nombre)}</strong>
-            <div class="etiquetas">
-              <span class="etq">${esc(a.rol)}</span>
-            </div>
+            ${a.sub ? `<span class="item-sub">${esc(a.sub)}</span>` : ""}
           </div>
-          ${hayDetalle ? `<div class="item-detalle">
-            ${a.sub ? `<p><strong>Sub estadística:</strong> ${esc(a.sub)}</p>` : ""}
-            ${a.efecto ? `<p>${esc(a.efecto)}</p>` : ""}
-          </div>` : ""}
+          ${hayDetalle ? `<div class="item-detalle"><p>${esc(a.efecto)}</p></div>` : ""}
         </div>`;
   }
 
@@ -851,13 +898,14 @@
   }
 
   function iniciarArtefactos() {
-    chipsGenericos("a-grados", ["5", "4"], fa.grados, pintarArtefactos, v => v === "5" ? "5★" : "4★");
-    chipsGenericos("a-roles", valoresUnicos(ARTEFACTOS.map(a => a.rol)), fa.roles, pintarArtefactos);
-    chipsGenericos("a-efectos", categoriasPresentes(ARTEFACTOS.map(a => `${a.sub} ${a.efecto}`)), fa.efectos, pintarArtefactos);
+    chipsGenericos("a-grados", ["5", "4"], fa.grados, pintarArtefactos, v => v + "★");
+    chipsGenericos("a-roles", ROLES_ARTEFACTO, fa.roles, pintarArtefactos);
+    chipsGenericos("a-elementos", FILTRO_ELEMENTOS.map(c => c.nombre), fa.elementos, pintarArtefactos);
+    chipsGenericos("a-efectos", FILTRO_ROL_ARTEFACTO.map(c => c.nombre), fa.efectos, pintarArtefactos);
     document.getElementById("a-lista").onclick = alternarDetalle;
     document.getElementById("a-buscar").oninput = e => { fa.texto = e.target.value; pintarArtefactos(); };
     document.getElementById("a-limpiar").onclick = () => {
-      fa.texto = ""; fa.grados.clear(); fa.roles.clear(); fa.efectos.clear();
+      fa.texto = ""; fa.grados.clear(); fa.roles.clear(); fa.elementos.clear(); fa.efectos.clear();
       document.getElementById("a-buscar").value = "";
       iniciarArtefactos();
     };
