@@ -784,12 +784,11 @@
       const hayDetalle = !!a.efecto;
       return `
         <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
-          <div class="item-icono"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-icono tier-${a.grado}"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
+          <div class="item-info">
             <strong class="item-nombre">${esc(a.nombre)}</strong>
             <div class="etiquetas">
-
-
+              <span class="etq">${esc(a.rol)}</span>
             </div>
           </div>
           ${hayDetalle ? `<div class="item-detalle"><p>${esc(a.efecto)}</p></div>` : ""}
