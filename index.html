@@ -15,12 +15,12 @@
   main { padding: 16px; max-width: 800px; margin: auto; }
   .seccion { display: none; }
   .seccion.activa { display: block; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); gap: 6px; }
-  .tarjeta { background: #1b2040; border-radius: 10px; padding: 5px; display: flex; align-items: center; gap: 5px; cursor: pointer; position: relative; max-width: 100%; box-sizing: border-box; height: 68px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, 168px); gap: 6px; justify-content: start; }
+  .tarjeta { background: #1b2040; border-radius: 10px; padding: 5px; display: flex; align-items: center; gap: 5px; cursor: pointer; position: relative; max-width: 100%; box-sizing: border-box; height: 62px; overflow: hidden; }
   .tarjeta .icono { width: 44px; height: 44px; margin: 0; flex-shrink: 0; }
   .tarjeta-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .tarjeta-info strong { font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tarjeta-info span { font-size: 11px; line-height: 1.2; color: #aab; }
+  .tarjeta-info strong { font-size: 12px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tarjeta-info span { font-size: 11px; line-height: 1.2; color: #aab; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tarjeta:hover { outline: 2px solid #6c7ee8; }
   .icono { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 6px; background: #2d3570; }
   .icono-grande { width: 110px; height: 110px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 12px; background: #2d3570; }
@@ -139,17 +139,17 @@
   .pieza-mini { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #aab; }
   .pieza-mini .item-icono { width: 44px; height: 44px; }
   .lista-uniforme { grid-template-columns: repeat(auto-fill, 236px); gap: 6px; justify-content: start; align-items: start; }
-  #m-lista.lista-uniforme { grid-template-columns: repeat(auto-fill, 212px); }
+  #m-lista.lista-uniforme, #a-lista.lista-uniforme { grid-template-columns: repeat(auto-fill, 212px); }
   .lista-uniforme .item-lista { position: relative; box-sizing: border-box; height: auto; min-height: 56px; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; }
-  #m-lista.lista-uniforme .item-lista { height: 58px; overflow: hidden; }
-  #m-lista.lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
+  #m-lista.lista-uniforme .item-lista, #a-lista.lista-uniforme .item-lista { height: 58px; overflow: hidden; }
+  #m-lista.lista-uniforme .item-lista.abierta, #a-lista.lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
   .lista-uniforme .item-icono { width: 44px; height: 44px; position: relative; }
   .item-numero { position: absolute; right: 1px; bottom: 1px; background: #101320; color: #eee; font-size: 9px; font-weight: bold; line-height: 1; border-radius: 4px; padding: 1px 3px; }
   .lista-uniforme .etiquetas { margin-top: 3px; }
   .lista-uniforme .etq { font-size: 10px; padding: 0 7px; }
   .lista-uniforme .item-lista.abierta { height: auto; overflow: visible; }
   .lista-uniforme .item-nombre { font-size: 12px; line-height: 1.25; }
-  #m-lista .item-nombre { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  #m-lista .item-nombre, #a-lista .item-nombre { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .lista-uniforme .etiquetas { flex-wrap: nowrap; overflow: hidden; }
   .item-detalle { display: none; flex-basis: 100%; }
   .item-lista.abierta .item-detalle { display: block; }
