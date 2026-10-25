@@ -52,9 +52,6 @@
   .ficha-cabecera .icono-grande { margin: 0; flex-shrink: 0; }
   .ficha-cabecera h2 { margin-bottom: 6px; font-size: 20px; }
   .ficha-datos { flex: 1; min-width: 0; }
-  .ficha-artefacto { width: 96px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
-  .ficha-artefacto img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; background: #2d3570; }
-  .ficha-artefacto span { font-size: 13px; color: #aab; line-height: 1.2; }
   .equipo-nombre { font-weight: bold; color: #ffd54f; margin: 0 0 10px; }
   .huecos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .hueco { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -153,7 +150,7 @@
   .lista-uniforme .etiquetas { flex-wrap: nowrap; overflow: hidden; }
   .item-detalle { display: none; flex-basis: 100%; }
   .item-lista.abierta .item-detalle { display: block; }
-  .item-detalle p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; }
+  .item-detalle p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; white-space: pre-line; }
   .con-detalle { cursor: pointer; }
   .con-detalle::after { content: "▾"; position: absolute; right: 6px; top: 4px; color: #aab; font-size: 12px; }
   .con-detalle.abierta::after { content: "▴"; }
@@ -176,6 +173,17 @@
   .monster-link .monster-marco { border-color: #e53935; }
   .monster-legendario .monster-marco { border-color: #ffd54f; }
   .ficha-cabecera p { margin: 2px 0; }
+  .ficha-nombre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .ficha-nombre h2 { margin: 0; }
+  .btn-tengo { background: #2d3570; color: #eee; border: 2px solid #3a4378; border-radius: 16px; padding: 4px 12px; font-size: 13px; cursor: pointer; }
+  .btn-tengo.activo { background: #2e7d4f; border-color: #7dd87d; color: #fff; }
+  .artefacto-ficha { display: flex; gap: 12px; align-items: flex-start; }
+  .artefacto-ficha .item-icono { width: 56px; height: 56px; flex-shrink: 0; }
+  .artefacto-datos { flex: 1; min-width: 0; }
+  .artefacto-datos strong { font-size: 15px; }
+  .artefacto-datos .etiquetas { margin-top: 4px; }
+  .artefacto-datos p { margin: 8px 0 0; font-size: 13px; line-height: 1.4; white-space: pre-line; }
+  .grupo-titulo { grid-column: 1 / -1; margin: 6px 0 0; font-size: 14px; color: #ffd54f; }
   .boton-menu { background: #2d3570; color: #fff; border: 0; border-radius: 8px; font-size: 22px; padding: 4px 12px; cursor: pointer; }
   .menu { position: fixed; top: 0; left: 0; height: 100%; width: 240px; box-sizing: border-box; background: #1b2040; padding: 16px; transform: translateX(-100%); transition: transform 0.25s ease; z-index: 20; }
   .menu.abierto { transform: translateX(0); }
@@ -234,7 +242,6 @@
       <h2>Personajes</h2>
       <span class="contador" id="contadorTengo"></span>
     </div>
-    <p class="aviso">Abre un personaje y marca «Lo tengo» en su perfil.</p>
 
     <div class="filtros">
       <input id="buscar" type="search" placeholder="Buscar personaje por nombre...">
@@ -585,6 +592,20 @@
   // Pantalla desde la que se abrió la ficha actual (listado o equipos)
   let fichaOrigen = null;
 
+  // Tarjeta con el artefacto del personaje: icono con borde según el grado, nombre, rol, sub estadística y efecto
+  function tarjetaArtefacto(p, a) {
+    const nombre = a ? a.nombre : p.artefacto;
+    return `
+      <div class="caja artefacto-ficha">
+        <div class="item-icono${a ? " tier-" + a.grado : ""}"><img src="${iconoArtefacto(nombre)}" alt="${esc(nombre)}" onerror="this.style.display='none'"></div>
+        <div class="artefacto-datos">
+          <strong>${esc(nombre)}</strong>
+          ${a ? `<div class="etiquetas"><span class="etq">${esc(a.rol)}</span>${a.sub ? `<span class="etq">${esc(a.sub)}</span>` : ""}</div>` : ""}
+          ${a && a.efecto ? `<p>${esc(a.efecto)}</p>` : ""}
+        </div>
+      </div>`;
+  }
+
   function abrirFicha(id, desdeHistorial = false, origenForzado = null) {
     const p = PERSONAJES.find(x => x.id === id);
     if (!p) return;
@@ -592,26 +613,32 @@
       <div class="caja ficha-cabecera">
         <img class="icono-grande tier-${p.tier.replace('★','')}" src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
         <div class="ficha-datos">
-          <h2>${esc(p.name)}</h2>
-          <p>${esc(p.tier)} · ${esc(p.element)}</p>
-          <p>${esc(p.role)}${p.rol !== p.role ? " - " + esc(p.rol) : ""}</p>
+          <div class="ficha-nombre">
+            <h2>${esc(p.name)}</h2>
+            <button type="button" class="btn-tengo" id="tengo" aria-pressed="false">Lo tengo</button>
+          </div>
+          <p>${esc(p.element)}</p>
+          <p>${esc(p.role)}</p>
           <p>${esc(p.rango)}</p>
-          <label class="fila-check"><input type="checkbox" id="tengo"> Lo tengo</label>
-        </div>
-        <div class="ficha-artefacto">
-          <img src="${artefactoIconoDe(p)}" alt="${esc(p.artefacto)}" onerror="this.style.display='none'">
-          <span>${esc(p.artefacto)}</span>
         </div>
       </div>
+      ${tarjetaArtefacto(p, ARTEFACTOS.find(a => nombreArchivo(a.nombre) === nombreArchivo(p.artefacto)))}
       ${tarjetaEquipo(1, p.equipos[0])}
       ${tarjetaEquipo(2, p.equipos[1])}
       ${tarjetaMonsterlings(p.monsters)}
     `;
-    const casillaTengo = document.getElementById("tengo");
-    casillaTengo.checked = !!obtenidos[p.id];
-    casillaTengo.onchange = e => {
-      obtenidos[p.id] = e.target.checked;
+    const botonTengo = document.getElementById("tengo");
+    const pintarTengo = () => {
+      const si = !!obtenidos[p.id];
+      botonTengo.classList.toggle("activo", si);
+      botonTengo.setAttribute("aria-pressed", si);
+      botonTengo.textContent = si ? "✓ Lo tengo" : "Lo tengo";
+    };
+    pintarTengo();
+    botonTengo.onclick = () => {
+      obtenidos[p.id] = !obtenidos[p.id];
       localStorage.setItem("obtenidosMongil", JSON.stringify(obtenidos));
+      pintarTengo();
       actualizarContador();
     };
     const origen = origenForzado || document.querySelector(".seccion.activa").id;
@@ -759,7 +786,7 @@
             </div>
           </div>
           ${hayDetalle ? `<div class="item-detalle">
-            ${m.efecto ? `<p>${esc(m.efecto)}</p>` : ""}
+            ${m.efecto ? `<p><strong>Efecto de rango:</strong> ${esc(m.efecto)}</p>` : ""}
             ${m.conseguir ? `<p class="aviso">Cómo conseguirlo: ${esc(m.conseguir)}</p>` : ""}
           </div>` : ""}
         </div>`;
@@ -785,19 +812,16 @@
   const fa = { texto: "", grados: new Set(), roles: new Set(), efectos: new Set() };
 
   function cumpleArtefacto(a) {
-    const t = normalizar(`${a.nombre} ${a.efecto}`);
+    const t = normalizar(`${a.nombre} ${a.sub} ${a.efecto}`);
     if (fa.texto && !t.includes(normalizar(fa.texto))) return false;
     if (fa.grados.size && !fa.grados.has(String(a.grado))) return false;
     if (fa.roles.size && !fa.roles.has(a.rol)) return false;
-    return cumpleEfectos(fa.efectos, a.efecto);
+    return cumpleEfectos(fa.efectos, `${a.sub} ${a.efecto}`);
   }
 
-  function pintarArtefactos() {
-    const visibles = ARTEFACTOS.filter(cumpleArtefacto).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-    document.getElementById("a-contador").textContent = `Mostrando ${visibles.length} de ${ARTEFACTOS.length}`;
-    document.getElementById("a-lista").innerHTML = visibles.length ? visibles.map(a => {
-      const hayDetalle = !!a.efecto;
-      return `
+  function tarjetaArtefactoLista(a) {
+    const hayDetalle = !!(a.sub || a.efecto);
+    return `
         <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
           <div class="item-icono tier-${a.grado}"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-info">
@@ -806,15 +830,30 @@
               <span class="etq">${esc(a.rol)}</span>
             </div>
           </div>
-          ${hayDetalle ? `<div class="item-detalle"><p>${esc(a.efecto)}</p></div>` : ""}
+          ${hayDetalle ? `<div class="item-detalle">
+            ${a.sub ? `<p><strong>Sub estadística:</strong> ${esc(a.sub)}</p>` : ""}
+            ${a.efecto ? `<p>${esc(a.efecto)}</p>` : ""}
+          </div>` : ""}
         </div>`;
-    }).join("") : "<p class='aviso'>Ningún artefacto coincide con los filtros.</p>";
+  }
+
+  function pintarArtefactos() {
+    const orden = (a, b) => a.nombre.localeCompare(b.nombre, "es");
+    const visibles = ARTEFACTOS.filter(cumpleArtefacto);
+    const pase = visibles.filter(a => a.pase).sort(orden);
+    const resto = visibles.filter(a => !a.pase).sort(orden);
+    document.getElementById("a-contador").textContent = `Mostrando ${visibles.length} de ${ARTEFACTOS.length}`;
+    let html = "";
+    if (pase.length) html += `<h3 class="grupo-titulo">Artefactos del pase</h3>` + pase.map(tarjetaArtefactoLista).join("");
+    if (pase.length && resto.length) html += `<h3 class="grupo-titulo">Artefactos</h3>`;
+    html += resto.map(tarjetaArtefactoLista).join("");
+    document.getElementById("a-lista").innerHTML = html || "<p class='aviso'>Ningún artefacto coincide con los filtros.</p>";
   }
 
   function iniciarArtefactos() {
     chipsGenericos("a-grados", ["5", "4"], fa.grados, pintarArtefactos, v => v === "5" ? "5★" : "4★");
     chipsGenericos("a-roles", valoresUnicos(ARTEFACTOS.map(a => a.rol)), fa.roles, pintarArtefactos);
-    chipsGenericos("a-efectos", categoriasPresentes(ARTEFACTOS.map(a => a.efecto)), fa.efectos, pintarArtefactos);
+    chipsGenericos("a-efectos", categoriasPresentes(ARTEFACTOS.map(a => `${a.sub} ${a.efecto}`)), fa.efectos, pintarArtefactos);
     document.getElementById("a-lista").onclick = alternarDetalle;
     document.getElementById("a-buscar").oninput = e => { fa.texto = e.target.value; pintarArtefactos(); };
     document.getElementById("a-limpiar").onclick = () => {
