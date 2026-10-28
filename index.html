@@ -739,11 +739,11 @@
     return CATEGORIAS_EFECTO.map(c => c.nombre).filter(n => siempre.includes(n) || textos.some(t => categoriasDe(t).includes(n)));
   }
 
-  // Los efectos marcados se combinan: debe cumplirse cada uno
+  // Misma regla que cumpleGrupo: basta con que el texto cumpla uno de los efectos marcados
   function cumpleEfectos(seleccion, texto) {
     if (seleccion.size === 0) return true;
     const cats = categoriasDe(texto);
-    return [...seleccion].every(e => cats.includes(e));
+    return [...seleccion].some(e => cats.includes(e));
   }
 
   function alternarDetalle(e) {
@@ -775,12 +775,13 @@
   const FILTRO_ROL_MONSTER = [ROL_APOYO, ROL_NEUTRALIZACION, ROL_CONTENCION, ROL_REFRIEGA];
   const FILTRO_ROL_ARTEFACTO = [ROL_APOYO, ROL_CONTENCION, ROL_NEUTRALIZACION, ROL_REFRIEGA];
 
-  // Sin nada marcado cumple siempre. todos=true: deben cumplirse todos los marcados; false: basta con uno
-  function cumpleGrupo(grupo, seleccion, texto, todos) {
+  // REGLA DE FILTROS: dentro de un mismo filtro se pueden marcar varios botones y se suman (basta con cumplir uno);
+  // entre filtros distintos se deben cumplir todos los que estén activos. Sin nada marcado, el filtro no limita.
+  function cumpleGrupo(grupo, seleccion, texto) {
     if (seleccion.size === 0) return true;
     const t = normalizar(texto || "");
     const hay = grupo.filter(c => c.claves.some(k => new RegExp(k).test(t))).map(c => c.nombre);
-    return todos ? [...seleccion].every(e => hay.includes(e)) : [...seleccion].some(e => hay.includes(e));
+    return [...seleccion].some(e => hay.includes(e));
   }
 
   const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
@@ -819,9 +820,9 @@
     if (fm.tipos.size && !fm.tipos.has(m.tipo)) return false;
     if (fm.regiones.size && !fm.regiones.has(m.region)) return false;
     if (fm.links.size && !((fm.links.has("Sí") && m.link === "Sí") || (fm.links.has("No") && m.link !== "Sí"))) return false;
-    return cumpleGrupo(FILTRO_ELEMENTOS, fm.elementos, m.efecto, false)
-      && cumpleGrupo(FILTRO_STATS, fm.efectos, m.efecto, true)
-      && cumpleGrupo(FILTRO_ROL_MONSTER, fm.roles, m.efecto, true);
+    return cumpleGrupo(FILTRO_ELEMENTOS, fm.elementos, m.efecto)
+      && cumpleGrupo(FILTRO_STATS, fm.efectos, m.efecto)
+      && cumpleGrupo(FILTRO_ROL_MONSTER, fm.roles, m.efecto);
   }
 
   // Deja todas las tarjetas de la lista con la misma altura: la de la tarjeta con más texto
@@ -886,8 +887,8 @@
     if (fa.texto && !normalizar(`${a.nombre} ${texto}`).includes(normalizar(fa.texto))) return false;
     if (fa.grados.size && !fa.grados.has(String(a.grado))) return false;
     if (fa.roles.size && !fa.roles.has(a.rol)) return false;
-    return cumpleGrupo(FILTRO_ELEMENTOS, fa.elementos, texto, false)
-      && cumpleGrupo(FILTRO_ROL_ARTEFACTO, fa.efectos, texto, true);
+    return cumpleGrupo(FILTRO_ELEMENTOS, fa.elementos, texto)
+      && cumpleGrupo(FILTRO_ROL_ARTEFACTO, fa.efectos, texto);
   }
 
   function tarjetaArtefactoLista(a) {
