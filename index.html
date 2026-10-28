@@ -174,6 +174,13 @@
   #m-lista.lista-uniforme .item-lista { height: var(--alto, 130px); }
   #m-lista.midiendo .item-lista { height: auto !important; overflow: visible !important; }
   .item-efecto { display: block; margin-top: 3px; font-size: 11px; line-height: 1.3; color: #cfd6ff; white-space: pre-line; }
+  .team-alternativas { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
+  .team-alt-nombre { background: none; border: 0; padding: 2px 0; color: #eee; font-size: 15px; text-align: left; cursor: pointer; }
+  .artefactos-secundarios { display: flex; flex-direction: column; gap: 8px; }
+  .art-sec { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; color: #eee; font-size: 14px; text-align: left; cursor: pointer; }
+  .art-sec .item-icono { display: block; width: 44px; height: 44px; flex-shrink: 0; }
+  .art-sec-nombre { flex: 1; min-width: 0; line-height: 1.25; }
+  .item-lista.resaltada { outline: 2px solid #ffd54f; }
   details.elemento summary { cursor: pointer; font-weight: bold; font-size: 17px; color: #b9c4ff; list-style: none; }
   details.elemento summary::-webkit-details-marker { display: none; }
   details.elemento summary::after { content: "▾"; float: right; color: #aab; }
@@ -297,6 +304,7 @@
 
   <section id="artefactos" class="seccion">
     <h2>Artefactos</h2>
+    <button type="button" class="btn" id="volverPerfil" hidden>← Volver al perfil</button>
     <div class="filtros">
       <input id="a-buscar" type="search" placeholder="Buscar por nombre o efecto...">
       <div class="grupo"><div class="etiqueta">Grado</div><div class="chips" id="a-grados"></div></div>
@@ -392,6 +400,14 @@
     sessionStorage.setItem("vistaBelana", JSON.stringify({ sec: id, personaje: personajeId, origen: origen }));
     window.scrollTo(0, 0);
     if (id === "monsters") igualarAlto(document.getElementById("m-lista"));
+    // En Artefactos, si se llegó desde un perfil, se ofrece volver a ese perfil
+    const volver = document.getElementById("volverPerfil");
+    const desde = history.state && history.state.desde;
+    volver.hidden = !(id === "artefactos" && desde);
+    if (!volver.hidden) {
+      const pj = PERSONAJES.find(x => x.id === desde);
+      volver.textContent = "← Volver a " + (pj ? pj.name : "perfil");
+    }
   }
 
   // Perfil: el avatar es el icono de un personaje (se guarda su id).
@@ -622,6 +638,34 @@
       </div>`;
   }
 
+  // Artefactos secundarios del personaje: solo icono y nombre. Al tocar uno se abre la sección Artefactos
+  function tarjetaSecundarios(p) {
+    const lista = (p.secundarios || []).map(n => ARTEFACTOS.find(a => nombreArchivo(a.nombre) === nombreArchivo(n))).filter(Boolean);
+    if (!lista.length) return "";
+    return `
+      <div class="caja artefactos-secundarios">
+        ${lista.map(a => `
+          <button type="button" class="art-sec" onclick="irAArtefacto('${nombreArchivo(a.nombre)}', '${p.id}')">
+            <span class="item-icono tier-${a.grado}"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" onerror="this.style.display='none'"></span>
+            <span class="art-sec-nombre">${esc(a.nombre)}</span>
+          </button>`).join("")}
+      </div>`;
+  }
+
+  // Va a la sección Artefactos y deja a la vista el artefacto tocado. Al retroceder se vuelve al perfil.
+  function irAArtefacto(clave, personajeId) {
+    history.pushState({ vista: "seccion", sec: "artefactos", desde: personajeId }, "");
+    document.getElementById("a-limpiar").click();
+    mostrarSeccion("artefactos");
+    document.querySelectorAll("#a-lista .resaltada").forEach(t => t.classList.remove("resaltada"));
+    const tarjeta = document.querySelector(`#a-lista [data-art="${clave}"]`);
+    if (tarjeta) {
+      tarjeta.classList.add("resaltada");
+      if (tarjeta.classList.contains("con-detalle")) tarjeta.classList.add("abierta");
+      if (tarjeta.scrollIntoView) tarjeta.scrollIntoView({ block: "center" });
+    }
+  }
+
   function abrirFicha(id, desdeHistorial = false, origenForzado = null) {
     const p = PERSONAJES.find(x => x.id === id);
     if (!p) return;
@@ -639,6 +683,7 @@
         </div>
       </div>
       ${tarjetaArtefacto(p, ARTEFACTOS.find(a => nombreArchivo(a.nombre) === nombreArchivo(p.artefacto)))}
+      ${tarjetaSecundarios(p)}
       ${tarjetaEquipo(1, p.equipos[0])}
       ${tarjetaEquipo(2, p.equipos[1])}
       ${tarjetaMonsterlings(p.monsters)}
@@ -674,6 +719,7 @@
   }
   document.getElementById("abrirMenu").onclick = abrirMenu;
   document.getElementById("tituloApp").onclick = abrirMenu;
+  document.getElementById("volverPerfil").onclick = () => history.back();
   window.addEventListener("resize", () => {
     if (document.getElementById("monsters").classList.contains("activa")) igualarAlto(document.getElementById("m-lista"));
   });
@@ -683,7 +729,7 @@
   // Navegación
   document.querySelectorAll(".menu button").forEach(b =>
     b.onclick = () => {
-      if (history.state && history.state.vista === "detalle") history.replaceState(null, "");
+      if (history.state && (history.state.vista === "detalle" || history.state.vista === "seccion")) history.replaceState(null, "");
       mostrarSeccion(b.dataset.sec);
       cerrarMenu();
     });
@@ -894,7 +940,7 @@
   function tarjetaArtefactoLista(a) {
     const hayDetalle = !!a.efecto;
     return `
-        <div class="item-lista${hayDetalle ? " con-detalle" : ""}">
+        <div class="item-lista${hayDetalle ? " con-detalle" : ""}" data-art="${nombreArchivo(a.nombre)}">
           <div class="item-icono tier-${a.grado}"><img src="${iconoArtefacto(a.nombre)}" alt="${esc(a.nombre)}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="item-info">
             <div class="etiquetas"><span class="etq">${esc(a.rol)}</span></div>
@@ -1204,6 +1250,14 @@
       </div>`;
   }
 
+  // Puesto con varias opciones: solo los nombres, uno debajo del otro (cada uno abre su perfil)
+  function puestoAlternativas(ids) {
+    return `<div class="team-alternativas">${ids.map(id => {
+      const p = PERSONAJES.find(x => x.id === id);
+      return `<button type="button" class="team-alt-nombre" onclick="abrirFicha('${p.id}')">${esc(p.name)}</button>`;
+    }).join("")}</div>`;
+  }
+
   function pintarEquipos() {
     const cont = document.getElementById("listaEquipos");
     cont.innerHTML = cabeceraLegendarios() + EQUIPOS_RECOMENDADOS.map(grupo => `
@@ -1211,8 +1265,9 @@
         <summary>${esc(grupo.elemento)}</summary>
         ${grupo.equipos.map(equipo => `
           <div class="team">
-            ${equipo.map(id => {
-              const p = PERSONAJES.find(x => x.id === id);
+            ${equipo.map(puesto => {
+              if (Array.isArray(puesto)) return puestoAlternativas(puesto);
+              const p = PERSONAJES.find(x => x.id === puesto);
               const m = p.monsters;
               return `
                 <div class="team-item" onclick="abrirFicha('${p.id}')">
@@ -1261,6 +1316,7 @@
   // Botón atrás del navegador o del móvil: desde una ficha vuelve al listado
   window.addEventListener("popstate", e => {
     if (e.state && e.state.vista === "detalle") abrirFicha(e.state.personaje, true, e.state.origen);
+    else if (e.state && e.state.vista === "seccion") mostrarSeccion(e.state.sec);
     else mostrarSeccion(fichaOrigen || "personajes");
   });
 
