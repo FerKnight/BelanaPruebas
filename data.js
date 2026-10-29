@@ -132,40 +132,133 @@ const ROLES = [
   }
 ];
 
-// Equipos recomendados por elemento. Cada equipo tiene 3 puestos: un personaje (id) o, si hay varias opciones, una lista de ids
+// Equipos recomendados por elemento. Cada equipo tiene 3 puestos: { p: personaje o lista de personajes, m: [monster link, monster 2, monster 3] }.
+// Con 2 o más personajes en un puesto se muestran solo sus nombres (son opciones).
 const EQUIPOS_RECOMENDADOS = [
   { elemento: 'Hielo', equipos: [
-    ['narae', ['francis', 'francis_verano'], 'sera'],
-    ['narae', ['francis', 'francis_verano'], 'cloud'],
-    ['narae', ['francis', 'francis_verano'], 'ophelia'],
-    ['narae', ['francis', 'francis_verano'], 'isabella'],
-    ['narae', 'isabella', 'ophelia']
+    [
+      { p: 'narae', m: ['Blanquin', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'sera', m: ['Sombra azul', 'Secuaz de hielo', 'Horda de chatarra'] }
+    ],
+    [
+      { p: 'narae', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'cloud', m: ['Sombra roja', 'Secuaz de hielo', 'Horda de chatarra'] }
+    ],
+    [
+      { p: 'narae', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'ophelia', m: ['Sombra roja', 'Secuaz de hielo', 'Scar'] }
+    ],
+    [
+      { p: 'narae', m: ['Blanquin', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'isabella', m: ['Sombra azul', 'Secuaz de hielo', 'Scar'] }
+    ],
+    [
+      { p: 'narae', m: ['Blanquin', 'Gulgak', 'Amon'] },
+      { p: 'isabella', m: ['Guardian de el dorado', 'Secuaz de hielo', 'Luppo de sombra lunar'] },
+      { p: 'ophelia', m: ['Sombra roja', 'Secuaz de hielo', 'Scar'] }
+    ]
   ] },
   { elemento: 'Fuego', equipos: [
-    ['angel', ['narae', 'francis', 'francis_verano'], 'mina'],
-    ['narae', ['francis', 'francis_verano'], 'mina'],
-    ['narae', ['francis', 'francis_verano'], 'verna_verano'],
-    ['angel', 'vivian', 'mina'],
-    [['francis', 'francis_verano'], 'vivian', 'mina'],
-    ['vivian', ['francis', 'francis_verano'], 'verna_verano']
+    [
+      { p: 'angel', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['narae', 'francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'mina', m: ['Duoxini', 'Secuaz de hielo', 'Ragnadon'] }
+    ],
+    [
+      { p: 'narae', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'mina', m: ['Duoxini', 'Secuaz de hielo', 'Ragnadon'] }
+    ],
+    [
+      { p: 'narae', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'verna_verano', m: ['Duoxini', 'Secuaz de hielo', 'Ragnadon'] }
+    ],
+    [
+      { p: 'angel', m: ['Demonio', 'Secuaz de hielo', 'Gulgak'] },
+      { p: 'vivian', m: ['Guardian de el dorado', 'Amon', 'Ragnadon'] },
+      { p: 'mina', m: ['Duoxini', 'Secuaz de hielo', 'Scar'] }
+    ],
+    [
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Gulgak'] },
+      { p: 'vivian', m: ['Demonio', 'Amon', 'Ragnadon'] },
+      { p: 'mina', m: ['Duoxini', 'Secuaz de hielo', 'Scar'] }
+    ],
+    [
+      { p: 'vivian', m: ['Demonio', 'Amon', 'Ragnadon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Gulgak'] },
+      { p: 'verna_verano', m: ['Duoxini', 'Secuaz de hielo', 'Scar'] }
+    ]
   ] },
   { elemento: 'Tierra', equipos: [
-    ['brisshell', 'francis_verano', 'ellie'],
-    ['ellie', 'francis_verano', 'gabi'],
-    ['narae', 'francis_verano', 'brisshell']
+    [
+      { p: 'brisshell', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: 'francis_verano', m: ['Guardian de el dorado', 'Custos', 'Odong de la cienaga'] },
+      { p: 'ellie', m: ['Secuaz de piedra', 'Secuaz de hielo', 'Scar'] }
+    ],
+    [
+      { p: 'ellie', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: 'francis_verano', m: ['Guardian de el dorado', 'Custos', 'Odong de la cienaga'] },
+      { p: 'gabi', m: ['Secuaz de piedra', 'Scar', 'Coloso ajustado'] }
+    ],
+    [
+      { p: 'narae', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: 'francis_verano', m: ['Guardian de el dorado', 'Custos', 'Odong de la cienaga'] },
+      { p: 'brisshell', m: ['Secuaz de piedra', 'Scar', 'Coloso ajustado'] }
+    ]
   ] },
   { elemento: 'Rayo', equipos: [
-    ['yeonhwa', ['francis', 'francis_verano'], 'benjamin'],
-    ['yeonhwa', ['francis', 'francis_verano'], 'reina'],
-    ['yeonhwa', ['narae', 'francis', 'francis_verano'], 'mabel'],
-    ['yeonhwa', 'narae', 'penny']
+    [
+      { p: 'yeonhwa', m: ['Demonio', 'Asaltante cuchara', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'benjamin', m: ['Raptor fidelis', 'Gulgak', 'Lechona'] }
+    ],
+    [
+      { p: 'yeonhwa', m: ['Demonio', 'Asaltante cuchara', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'reina', m: ['Raptor fidelis', 'Gulgak', 'Lechona'] }
+    ],
+    [
+      { p: 'yeonhwa', m: ['Demonio', 'Asaltante cuchara', 'Amon'] },
+      { p: ['narae', 'francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'mabel', m: ['Horda de chatarra', 'Gulgak', 'Lechona'] }
+    ],
+    [
+      { p: 'yeonhwa', m: ['Demonio', 'Asaltante cuchara', 'Amon'] },
+      { p: 'narae', m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'penny', m: ['Horda de chatarra', 'Scar', 'Lechona'] }
+    ]
   ] },
   { elemento: 'Viento', equipos: [
-    ['jiwon', ['francis', 'francis_verano'], 'esther'],
-    ['jiwon', 'nagi', 'esther'],
-    ['narae', ['francis', 'francis_verano'], 'nagi'],
-    ['jiwon', 'nagi', 'chloe'],
-    ['francis_verano', 'nagi', 'chloe']
+    [
+      { p: 'jiwon', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'esther', m: ['Nagi', 'Secuaz de hielo', 'Horda de chatarra'] }
+    ],
+    [
+      { p: 'jiwon', m: ['Guardian de el dorado', 'Horda limpia', 'Gulgak'] },
+      { p: 'nagi', m: ['Demonio', 'Olvido', 'Amon'] },
+      { p: 'esther', m: ['Nagi', 'Secuaz de hielo', 'Horda de chatarra'] }
+    ],
+    [
+      { p: 'narae', m: ['Demonio', 'Gulgak', 'Amon'] },
+      { p: ['francis', 'francis_verano'], m: ['Guardian de el dorado', 'Custos', 'Luppo de sombra lunar'] },
+      { p: 'nagi', m: ['Nagi', 'Secuaz de hielo', 'Horda de chatarra'] }
+    ],
+    [
+      { p: 'jiwon', m: ['Guardian de el dorado', 'Horda limpia', 'Gulgak'] },
+      { p: 'nagi', m: ['Nagi', 'Silbinator', 'Amon'] },
+      { p: 'chloe', m: ['Olvido', 'Secuaz de hielo', 'Scar'] }
+    ],
+    [
+      { p: 'francis_verano', m: ['Guardian de el dorado', 'Custos', 'Gulgak'] },
+      { p: 'nagi', m: ['Demonio', 'Horda limpia', 'Amon'] },
+      { p: 'chloe', m: ['Nagi', 'Secuaz de hielo', 'Scar'] }
+    ]
   ] }
 ];
 

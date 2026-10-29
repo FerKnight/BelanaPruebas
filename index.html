@@ -95,7 +95,8 @@
   .rasgo-caja { display: inline-block; margin-top: 6px; border: 1px solid #6c7ee8; border-radius: 8px; padding: 6px 8px; color: #eee; }
   .team-item { justify-content: flex-start; gap: 6px; overflow-x: auto; }
   .team-rasgos { display: flex; flex-direction: column; gap: 3px; width: 120px; flex-shrink: 0; font-size: 11px; color: #eee; line-height: 1.25; }
-  .team-cabeza { width: auto; max-width: 78px; }
+  .team-cabeza, .team-alternativas { width: 86px; flex-shrink: 0; box-sizing: border-box; }
+  .team-item-alt { cursor: default; }
   .team + .team { border-top: 1px solid #3a4378; padding-top: 14px; }
   #mapas .visor { position: fixed; top: 64px; left: 0; right: 0; bottom: 0; overflow: hidden; background: #0b0e1c; touch-action: none; }
   .lienzo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transform-origin: center center; }
@@ -174,7 +175,7 @@
   #m-lista.lista-uniforme .item-lista { height: var(--alto, 130px); }
   #m-lista.midiendo .item-lista { height: auto !important; overflow: visible !important; }
   .item-efecto { display: block; margin-top: 3px; font-size: 11px; line-height: 1.3; color: #cfd6ff; white-space: pre-line; }
-  .team-alternativas { display: flex; flex-direction: column; gap: 2px; padding: 2px 0; }
+  .team-alternativas { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 2px 0; }
   .team-alt-nombre { background: none; border: 0; padding: 2px 0; color: #eee; font-size: 14px; line-height: 1.25; text-align: left; cursor: pointer; }
   .art-card { display: flex; flex-direction: column; gap: 4px; }
   .art-etiqueta { margin: 0; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #ffd54f; }
@@ -1219,7 +1220,7 @@
     pintarMapa();
   }
 
-  // Equipos recomendados por elemento (desplegables)
+  // Cuadro de un monsterling dentro de los equipos
   function monstruoCaja(nombre, clase) {
     const etiqueta = clase === "mon-link" ? `<span class="mon-etq">LINK</span>` : "";
     return `
@@ -1232,14 +1233,49 @@
       </div>`;
   }
 
-  // Puesto con varias opciones: solo los nombres, uno debajo del otro (cada uno abre su perfil)
-  function puestoAlternativas(ids) {
-    return `<div class="team-alternativas">${ids.map(id => {
-      const p = PERSONAJES.find(x => x.id === id);
-      return `<button type="button" class="team-alt-nombre" onclick="abrirFicha('${p.id}')">${esc(p.name)}</button>`;
-    }).join("")}</div>`;
+  const nombreCorto = p => p.name.replace(/ Verano$/, " V.");
+
+  // Los 3 monsterlings recomendados para ese puesto del equipo (el primero es el de LINK)
+  function monstersPuesto(m) {
+    if (!m) return "";
+    return `
+      <div class="monsters-medio">
+        ${monstruoCaja(m[0], "mon-link")}
+        ${monstruoCaja(m[1], "")}
+        ${monstruoCaja(m[2], "")}
+      </div>`;
   }
 
+  // Puesto con un solo personaje: icono, nombre, sus monsterlings y sus rasgos
+  function puestoPersonaje(id, monsters) {
+    const p = PERSONAJES.find(x => x.id === id);
+    const m = monsters || [p.monsters.link, p.monsters.dos, p.monsters.tres];
+    return `
+      <div class="team-item" onclick="abrirFicha('${p.id}')">
+        <div class="team-cabeza">
+          <img src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
+          <span>${esc(nombreCorto(p))}</span>
+        </div>
+        ${monstersPuesto(m)}
+        <div class="team-rasgos">
+          ${(p.rasgos || []).map(r => `<span>${esc(r)}</span>`).join("")}
+        </div>
+      </div>`;
+  }
+
+  // Puesto con 2 o más personajes (opciones): solo texto con los nombres, uno debajo del otro, y los monsterlings del puesto
+  function puestoAlternativas(ids, monsters) {
+    return `
+      <div class="team-item team-item-alt">
+        <div class="team-alternativas">${ids.map(id => {
+          const p = PERSONAJES.find(x => x.id === id);
+          return `<button type="button" class="team-alt-nombre" onclick="abrirFicha('${p.id}')">${esc(nombreCorto(p))}</button>`;
+        }).join("")}</div>
+        ${monstersPuesto(monsters)}
+      </div>`;
+  }
+
+  // Equipos recomendados por elemento (desplegables)
   function pintarEquipos() {
     const cont = document.getElementById("listaEquipos");
     cont.innerHTML = cabeceraLegendarios() + EQUIPOS_RECOMENDADOS.map(grupo => `
@@ -1248,24 +1284,8 @@
         ${grupo.equipos.map(equipo => `
           <div class="team">
             ${equipo.map(puesto => {
-              if (Array.isArray(puesto)) return puestoAlternativas(puesto);
-              const p = PERSONAJES.find(x => x.id === puesto);
-              const m = p.monsters;
-              return `
-                <div class="team-item" onclick="abrirFicha('${p.id}')">
-                  <div class="team-cabeza">
-                    <img src="${iconoDe(p)}" alt="${esc(p.name)}" onerror="this.style.display='none'">
-                    <span>${esc(p.name.replace(/ Verano$/, " V."))}</span>
-                  </div>
-                  <div class="monsters-medio">
-                    ${monstruoCaja(m.link, "mon-link")}
-                    ${monstruoCaja(m.dos, "")}
-                    ${monstruoCaja(m.tres, "")}
-                  </div>
-                  <div class="team-rasgos">
-                    ${(p.rasgos || []).map(r => `<span>${esc(r)}</span>`).join("")}
-                  </div>
-                </div>`;
+              const ids = [].concat(puesto.p || puesto);
+              return ids.length > 1 ? puestoAlternativas(ids, puesto.m) : puestoPersonaje(ids[0], puesto.m);
             }).join("")}
           </div>`).join("")}
       </details>`).join("");
