@@ -506,7 +506,7 @@
   }
 
   function cumpleFiltros(p) {
-    if (filtros.texto && !normalizar(p.name).includes(normalizar(filtros.texto))) return false;
+    if (filtros.texto && !normalizar(p.name).replace(/\./g, "").includes(normalizar(filtros.texto).replace(/\./g, ""))) return false;
     if (filtros.tiers.size > 0 && !filtros.tiers.has(p.tier)) return false;
     if (filtros.elementos.size > 0 && !filtros.elementos.has(p.element)) return false;
     if (filtros.roles.size > 0 && !filtros.roles.has(p.role)) return false;
@@ -530,7 +530,7 @@
           <strong>${esc(p.name)}</strong>
           <span>${esc(p.element)}</span>
           <span>${esc(p.role)}</span>
-          <span>${esc(p.rango)}</span>
+          ${p.rango ? `<span>${esc(p.rango)}</span>` : ""}
         </div>`;
 
       d.onclick = () => abrirFicha(p.id);
@@ -650,7 +650,7 @@
           </div>
           <p>${esc(p.element)}</p>
           <p>${esc(p.role)}</p>
-          <p>${esc(p.rango)}</p>
+          ${p.rango ? `<p>${esc(p.rango)}</p>` : ""}
         </div>
       </div>
       ${tarjetaArtefactos(p)}
@@ -1245,7 +1245,7 @@
   // Puesto con un solo personaje: icono, nombre, sus monsterlings y sus rasgos
   function puestoPersonaje(id, monsters) {
     const p = PERSONAJES.find(x => x.id === id);
-    const m = monsters || [p.monsters.link, p.monsters.dos, p.monsters.tres];
+    const m = monsters || (p.monsters ? [p.monsters.link, p.monsters.dos, p.monsters.tres] : null);
     return `
       <div class="team-item" onclick="abrirFicha('${p.id}')">
         <div class="team-cabeza">
