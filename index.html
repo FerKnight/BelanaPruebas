@@ -350,6 +350,12 @@
   let perfil = JSON.parse(localStorage.getItem("perfilMongil") || "{}");
   let obtenidos = JSON.parse(localStorage.getItem("obtenidosMongil") || "{}");
 
+  // ORDEN ALFABÉTICO: se ordena siempre al cargar, así los personajes nuevos quedan en su sitio sin importar el orden del Excel.
+  // La clave ignora tildes, mayúsculas y puntos (M.A.D. se ordena como "mad").
+  const claveAZ = t => normalizar(t).replace(/[^a-z0-9]/g, "");
+  const ordenAZ = (a, b) => claveAZ(a).localeCompare(claveAZ(b), "es");
+  PERSONAJES.sort((a, b) => ordenAZ(a.name, b.name));
+
   // Estado de los filtros
   const filtros = { texto: "", tiers: new Set(), elementos: new Set(), roles: new Set() };
 
@@ -930,7 +936,7 @@
   }
 
   function pintarArtefactos() {
-    const orden = (a, b) => a.nombre.localeCompare(b.nombre, "es");
+    const orden = (a, b) => ordenAZ(a.nombre, b.nombre);
     const visibles = ARTEFACTOS.filter(cumpleArtefacto);
     const pase = visibles.filter(a => a.pase).sort(orden);
     const resto = visibles.filter(a => !a.pase).sort(orden);
@@ -977,7 +983,7 @@
   }
 
   function pintarEquipamientos() {
-    const claves = Object.keys(CONJUNTOS).filter(cumpleConjunto);
+    const claves = Object.keys(CONJUNTOS).filter(cumpleConjunto).sort((a, b) => ordenAZ(CONJUNTOS[a].nombre, CONJUNTOS[b].nombre));
     document.getElementById("e-contador").textContent = `Mostrando ${claves.length} de ${Object.keys(CONJUNTOS).length}`;
     document.getElementById("e-lista").innerHTML = claves.length ? claves.map(k => {
       const c = CONJUNTOS[k];
